@@ -10,8 +10,8 @@ repositories {
 }
 
 dependencies {
-    testCompile group: 'junit', name: 'junit', version: '4.12'
-    compile 'com.eclipsesource.j2v8:j2v8_linux_x86_64:4.6.0'
+    implementation 'com.eclipsesource.j2v8:j2v8_linux_x86_64:4.6.0'
+    implementation "guru.nidi:graphviz-java:0.16.3"
 }
 
 application {
