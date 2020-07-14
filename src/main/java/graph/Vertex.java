@@ -1,19 +1,15 @@
 package graph;
 
+import model.Node;
+
 public class Vertex {
-    private final String name;
-    private final boolean isCritical;
+    private final Node node;
 
-    public Vertex(String name, boolean isCritical) {
-        this.name = name;
-        this.isCritical = isCritical;
+    public Vertex(Node node) {
+        this.node = node;
     }
 
-    public String getName() {
-        return name;
-    }
-
-    public boolean getIsCritical() {
-        return isCritical;
+    public Node getAssignedNode() {
+        return node;
     }
 }
