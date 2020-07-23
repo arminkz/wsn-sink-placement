@@ -3,8 +3,10 @@ package visual;
 import graph.Edge;
 import graph.Graph;
 import graph.Vertex;
+import guru.nidi.graphviz.engine.Engine;
 import guru.nidi.graphviz.engine.Format;
 import guru.nidi.graphviz.engine.Graphviz;
+import guru.nidi.graphviz.model.Link;
 import guru.nidi.graphviz.model.MutableGraph;
 import guru.nidi.graphviz.model.MutableNode;
 import model.SensorNode;
@@ -21,7 +23,7 @@ public class GraphViewer {
     public static BufferedImage viewGraph(Graph g) {
         //init GraphViz Object
         HashMap<Vertex, MutableNode> vHash = new HashMap<>();
-        MutableGraph mg = mutGraph("example1");
+        MutableGraph mg = mutGraph("example1").graphAttrs().add("overlap",false);
         for(Vertex v: g.getVertices()) {
             MutableNode vgv = mutNode(v.getAssignedNode().getName());
             if(v.getAssignedNode() instanceof SensorNode){
@@ -38,8 +40,16 @@ public class GraphViewer {
         for(Edge e: g.getEdges()) {
             vHash.get(e.getSource()).addLink(vHash.get(e.getDestination()));
         }
+        for(Vertex v: g.getVertices()) {
+            if(v.getAssignedNode() instanceof SinkNode) {
+                for(Link l :vHash.get(v).links()) {
+                    l.attrs().add("style","dashed");
+                }
+            }
+        }
 
-        return Graphviz.fromGraph(mg).render(Format.PNG).toImage();
+        //use command line engine for speedup
+        return Graphviz.fromGraph(mg).engine(Engine.NEATO).render(Format.PNG).toImage();
     }
 
 }

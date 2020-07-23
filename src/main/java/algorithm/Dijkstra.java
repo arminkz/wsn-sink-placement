@@ -27,28 +27,29 @@ public class Dijkstra {
     private final Graph graph;
     private final int N;
 
-    private final PriorityQueue<DijNode> pq;
-    private final Set<Vertex> visited;
-    private final HashMap<Vertex,Integer> dist;
-
+    private HashMap<Vertex,Integer> dist;
 
     public Dijkstra(Graph graph) {
         this.graph = graph;
         N = graph.getVertices().size();
-        pq = new PriorityQueue<>(N);
-        visited = new HashSet<>();
-        dist = new HashMap<>();
     }
 
-    public void calc(int src) {
+    public void calc(int src){
+        calc(graph.getVertices().get(src));
+    }
+
+    public void calc(Vertex src) {
+        PriorityQueue<DijNode> pq = new PriorityQueue<>(N);
+        Set<Vertex> visited = new HashSet<>();
+        dist = new HashMap<>();
         // init dist
         for(Vertex v: graph.getVertices()){
             dist.put(v,Integer.MAX_VALUE);
         }
         // Distance to the source is 0
-        dist.replace(graph.getVertices().get(src),0);
+        dist.replace(src,0);
         // Add source vertex to priorityQueue
-        pq.add(new DijNode(graph.getVertices().get(src),0));
+        pq.add(new DijNode(src,0));
 
         while(visited.size() != N) {
 
@@ -78,7 +79,11 @@ public class Dijkstra {
     }
 
     public int getDistance(int target) {
-        return dist.get(graph.getVertices().get(target));
+        return getDistance(graph.getVertices().get(target));
+    }
+
+    public int getDistance(Vertex target) {
+        return dist.get(target);
     }
 
 
