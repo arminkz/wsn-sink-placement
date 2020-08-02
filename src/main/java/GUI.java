@@ -1,19 +1,20 @@
-import algorithm.Checker;
+import algorithm.FeasibilityCheck;
 import graph.Graph;
-import graph.GraphLoader;
+import model.Scenario;
+import model.ScenarioLoader;
 import visual.GraphPanel;
-import visual.GraphViewer;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.image.BufferedImage;
 
 public class GUI extends JPanel {
 
     private GUI(){
-        Graph g = GraphLoader.loadFromFile("data/toy_example/");
+        Scenario s = ScenarioLoader.loadFromFile("data/toy_example/");
         this.setLayout(new BorderLayout());
-        this.add(new GraphPanel(g));
+        this.add(new GraphPanel(s.getRootGraph()));
+
+        //System.out.println(FeasibilityCheck.checkGraph(g));
     }
 
     public static void run() {

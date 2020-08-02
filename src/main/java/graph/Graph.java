@@ -18,16 +18,24 @@ public class Graph {
     public ArrayList<Vertex> getVertices() { return vertices; }
     public ArrayList<Edge> getEdges() { return edges; }
 
-    public void addNode(Node node) {
-        vertices.add(new Vertex(node));
+    public void addVertex(Vertex v) {
+        vertices.add(v);
     }
 
-    public void addEdge(int from,int to,int weight) {
-        Edge e = new Edge(vertices.get(from),vertices.get(to),weight);
+    public void addEdge(Vertex v1, Vertex v2, int weight) {
+        Edge e = new Edge(v1,v2,weight);
         edges.add(e);
-        vertices.get(from).getEdges().add(e);
-        vertices.get(to).getEdges().add(e);
+        v1.getEdges().add(e);
+        v2.getEdges().add(e);
     }
+
+    //TODO: this code must be reviewed (should vertices and edges clone too?)
+//    public Graph clone() {
+//        Graph g = new Graph();
+//        g.vertices.addAll(this.vertices);
+//        g.edges.addAll(this.edges);
+//        return g;
+//    }
 
 
 }

@@ -1,26 +1,17 @@
 package model;
 
-public class SinkNode extends Node {
+public class SinkConfiguration {
 
     private final int cpu;
     private final int ram;
     private final int bw;
     private final int cost;
 
-    public SinkNode(String name,int cpu,int ram,int bw,int cost) {
-        super(name);
+    public SinkConfiguration(int cpu,int ram,int bw,int cost) {
         this.cpu = cpu;
         this.ram = ram;
         this.bw = bw;
         this.cost = cost;
-    }
-
-    public SinkNode(String name, SinkConfiguration config) {
-        super(name);
-        this.cpu = config.getCpu();
-        this.ram = config.getRam();
-        this.bw = config.getBandwidth();
-        this.cost = config.getCost();
     }
 
     public int getCpu() { return cpu; }
