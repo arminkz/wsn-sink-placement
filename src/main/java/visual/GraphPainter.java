@@ -18,20 +18,30 @@ import java.util.HashMap;
 import static guru.nidi.graphviz.model.Factory.mutGraph;
 import static guru.nidi.graphviz.model.Factory.mutNode;
 
-public class GraphViewer {
+public class GraphPainter {
 
     public static BufferedImage viewGraph(Graph g) {
         //init GraphViz Object
         HashMap<Vertex, MutableNode> vHash = new HashMap<>();
         MutableGraph mg = mutGraph("example1").graphAttrs().add("overlap",false);
+        int candidateCounter = 1;
         for(Vertex v: g.getVertices()) {
-            MutableNode vgv = mutNode(v.getAssignedNode().getName());
-            if(v.getAssignedNode() instanceof SensorNode){
-                if(((SensorNode) v.getAssignedNode()).isCritical()) vgv.attrs().add("shape","doublecircle");
-                else vgv.attrs().add("shape","circle");
-            }
-            if(v.getAssignedNode() instanceof SinkNode) {
-                vgv.attrs().add("shape","box");
+            MutableNode vgv;
+            if(v.getAssignedNode() != null) {
+                vgv = mutNode(v.getAssignedNode().getName());
+                if (v.getAssignedNode() instanceof SensorNode) {
+                    if (((SensorNode) v.getAssignedNode()).isCritical()) vgv.attrs().add("shape", "doublecircle");
+                    else vgv.attrs().add("shape", "circle");
+                }
+                if (v.getAssignedNode() instanceof SinkNode) {
+                    vgv.attrs().add("shape", "box");
+                    vgv.attrs().add("style","filled");
+                    vgv.attrs().add("fillcolor","#CCCCCC");
+                }
+            }else{
+                vgv = mutNode("C"+candidateCounter);
+                candidateCounter++;
+                vgv.attrs().add("shape", "box");
             }
 
             mg.add(vgv);
@@ -41,7 +51,7 @@ public class GraphViewer {
             vHash.get(e.getSource()).addLink(vHash.get(e.getDestination()));
         }
         for(Vertex v: g.getVertices()) {
-            if(v.getAssignedNode() instanceof SinkNode) {
+            if(v.getAssignedNode() == null) { //sink candidate
                 for(Link l :vHash.get(v).links()) {
                     l.attrs().add("style","dashed");
                 }

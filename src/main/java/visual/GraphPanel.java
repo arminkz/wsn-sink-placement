@@ -13,11 +13,11 @@ public class GraphPanel extends JPanel {
 
     public GraphPanel(Graph graph) {
         this.graph = graph;
-        plot = GraphViewer.viewGraph(graph);
+        plot = GraphPainter.viewGraph(graph);
     }
 
     public void refresh() {
-        plot = GraphViewer.viewGraph(graph);
+        plot = GraphPainter.viewGraph(graph);
     }
 
     @Override

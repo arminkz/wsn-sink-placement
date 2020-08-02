@@ -3,10 +3,6 @@ package model;
 import graph.Edge;
 import graph.Graph;
 import graph.Vertex;
-import model.SensorNode;
-import model.SinkCandidate;
-import model.SinkConfiguration;
-import model.SinkNode;
 
 import java.io.File;
 import java.io.IOException;
@@ -83,35 +79,23 @@ public class ScenarioLoader {
                 vertexMap.get(vertexIndex).setNode(sensor);
             }
 
-            // load sink indexes (don't store in graph but store in candidate object)
+            // load sink indexes (don't add node in graph but store in candidate object)
             File sinksFile = new File(path + "sinks.csv");
-            Set<Integer> sinkCandidateIndexes = new HashSet<>();
             scn = new Scanner(sinksFile, StandardCharsets.UTF_8);
             scn.nextLine(); //discard header
             while(scn.hasNextLine()){
                 int vertexIndex = Integer.parseInt(scn.nextLine());
-                sinkCandidateIndexes.add(vertexIndex);
-            }
-            for(Integer vi: sinkCandidateIndexes) {
-                Vertex v = vertexMap.get(vi);
                 // build SinkCandidate object
                 SinkCandidate sc = new SinkCandidate();
-                sc.setPlacmentVertex(v);
-                sc.getPlacmentEdges().addAll(v.getEdges());
+                sc.setPlacmentVertex(vertexIndex);
                 sinkCandidates.add(sc);
-            }
-            for(Integer vi: sinkCandidateIndexes) {
-                Vertex v = vertexMap.get(vi);
-                // delete from root Graph
-                g.getEdges().removeAll(v.getEdges());
-                g.getVertices().remove(v);
             }
 
             return new Scenario(g,sinkTypes,sinkCandidates);
         } catch (IOException e) {
             e.printStackTrace();
         }
-        return null;
+        throw new RuntimeException("error loading scenario");
     }
 
 }

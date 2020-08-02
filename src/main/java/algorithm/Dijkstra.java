@@ -26,12 +26,26 @@ public class Dijkstra {
 
     private final Graph graph;
     private final int N;
+    private final int[][] adj;
 
     private HashMap<Vertex,Integer> dist;
 
     public Dijkstra(Graph graph) {
         this.graph = graph;
         N = graph.getVertices().size();
+        // create adjacency matrix
+        adj = new int[N][N];
+        for (int i = 0; i < N; i++) {
+            for (int j = 0; j < N; j++) {
+                adj[i][j] = -1; //not connected
+            }
+        }
+        for(Edge e: graph.getEdges()) {
+            int v1 = graph.getVertices().indexOf(e.getSource());
+            int v2 = graph.getVertices().indexOf(e.getDestination());
+            adj[v1][v2] = e.getWeight();
+            adj[v2][v1] = e.getWeight();
+        }
     }
 
     public void calc(int src){
@@ -57,31 +71,31 @@ public class Dijkstra {
             // vertex is visited
             visited.add(v);
 
-            // process neighbours
-            for(Edge e: v.getEdges()) {
-                Vertex neighbour;
-                if(e.getSource().equals(v)) neighbour = e.getDestination();
-                else if(e.getDestination().equals(v)) neighbour = e.getSource();
-                else throw new RuntimeException("Malformed Graph");
 
-                if(!visited.contains(neighbour)) {
-                    int newDist = dist.get(v) + e.getWeight();
-                    if(newDist < dist.get(neighbour)){
-                        // update neighbour distance
-                        dist.replace(neighbour,newDist);
+            // process neighbours
+            int vIndex = graph.getVertices().indexOf(v);
+            for (int i = 0; i < N; i++) {
+                if(adj[vIndex][i] != -1) {
+                    Vertex neighbour = graph.getVertices().get(i);
+                    int w = adj[vIndex][i];
+
+                    if(!visited.contains(neighbour) && neighbour.getAssignedNode() != null) {
+                        int newDist = dist.get(v) + w;
+                        if(newDist < dist.get(neighbour)){
+                            // update neighbour distance
+                            dist.replace(neighbour,newDist);
+                        }
+                        // add neighbour to priorityQueue
+                        pq.add(new DijNode(neighbour,dist.get(neighbour)));
                     }
-                    // add neighbour to priorityQueue
-                    pq.add(new DijNode(neighbour,dist.get(neighbour)));
                 }
             }
-
         }
     }
 
     public int getDistance(int target) {
         return getDistance(graph.getVertices().get(target));
     }
-
     public int getDistance(Vertex target) {
         return dist.get(target);
     }
