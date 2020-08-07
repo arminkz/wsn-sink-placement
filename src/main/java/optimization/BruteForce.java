@@ -1,9 +1,12 @@
 package optimization;
 
+import algorithm.Evaluator;
 import graph.Graph;
 import graph.Vertex;
 import model.*;
 import visual.ShowGraph;
+
+import java.sql.SQLOutput;
 
 public class BruteForce {
 
@@ -13,7 +16,9 @@ public class BruteForce {
     int nSink;
     int nOption;
 
-    public int leafCount = 0;
+    private int leafCount = 0;
+    private Graph bestAnswer = null;
+    private int bestCost = Integer.MAX_VALUE;
 
     public BruteForce(Scenario scenario) {
         this.scenario = scenario;
@@ -24,22 +29,29 @@ public class BruteForce {
 
     public void solve() {
         solveUtil(root,0);
+        if(bestAnswer == null) {
+            System.out.println("there is no feasible answer to this problem.");
+        } else {
+            System.out.println("brute force explored " + leafCount + " states.");
+            ShowGraph.showGraph("best answer (cost=" + bestCost + ")" ,bestAnswer);
+        }
+
     }
 
-    public void solveUtil(Graph graph, int loc) {
+    private void solveUtil(Graph graph, int loc) {
         if(loc == nSink) {
-            // backtrack completed
+            // backtrack reached leaf
             leafCount++;
 
-
-            ShowGraph.showGraph("leaf : " + leafCount,graph);
-
-            for(SinkCandidate sc: scenario.getSinkCandidates()){
-                Vertex v = graph.getVertices().get(sc.getPlacmentVertexIndex());
-                System.out.print(v.getAssignedNode() + " ");
+            int cost = Evaluator.evaluate(graph);
+            if(cost != Integer.MAX_VALUE) {
+                // solution is feasible
+                System.out.println("feasible graph reached with cost " + cost);
+                if(bestAnswer == null || cost < bestCost) {
+                    bestCost = cost;
+                    bestAnswer = graph;
+                }
             }
-            System.out.println("");
-
             return;
         }
 

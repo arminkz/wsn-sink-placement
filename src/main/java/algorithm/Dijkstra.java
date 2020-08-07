@@ -8,7 +8,7 @@ import java.util.*;
 
 public class Dijkstra {
 
-    class DijNode implements Comparable<DijNode> {
+    static class DijNode implements Comparable<DijNode> {
 
         public Vertex vertex;
         public int cost;
@@ -65,7 +65,7 @@ public class Dijkstra {
         // Add source vertex to priorityQueue
         pq.add(new DijNode(src,0));
 
-        while(visited.size() != N) {
+        while(!pq.isEmpty()) {
 
             Vertex v = pq.remove().vertex;
             // vertex is visited

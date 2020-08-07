@@ -1,7 +1,7 @@
-import algorithm.FeasibilityCheck;
-import graph.Graph;
+import algorithm.Evaluator;
 import model.*;
 import optimization.BruteForce;
+import optimization.GeneticAlgorithm;
 import visual.GraphPanel;
 
 import javax.swing.*;
@@ -10,18 +10,16 @@ import java.awt.*;
 public class GUI extends JPanel {
 
     private GUI(){
-        Scenario s = ScenarioLoader.loadFromFile("data/toy_example_2/");
+        Scenario s = ScenarioLoader.loadFromFile("data/toy_example/");
 
-        //this.setLayout(new BorderLayout());
-        //this.add(new GraphPanel(s.getRootGraph()));
+        this.setLayout(new BorderLayout());
+        this.add(new GraphPanel(s.getRootGraph()));
 
-        System.out.println("Number of Sink Types: " + s.getSinkTypes().size() );
-        System.out.println("Number of Placement Locations: " + s.getSinkCandidates().size() );
+//        BruteForce bf = new BruteForce(s);
+//        bf.solve();
 
-        BruteForce bf = new BruteForce(s);
-        bf.solve();
-
-        System.out.println(bf.leafCount);
+        GeneticAlgorithm ga = new GeneticAlgorithm(s,500,0.2,0.1);
+        ga.solve(20);
     }
 
     public static void run() {
@@ -29,6 +27,6 @@ public class GUI extends JPanel {
         window.setSize(500,500);
         window.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
         window.add(new GUI());
-        //window.setVisible(true);
+        window.setVisible(true);
     }
 }

@@ -11,9 +11,10 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
 
-public class FeasibilityCheck {
+public class Evaluator {
 
-    public static boolean checkGraph(Graph g) {
+    // returns INF Cost if graph is not feasible, otherwise returns cost of sink placement
+    public static int evaluate(Graph g) {
 
         HashMap<SensorNode, ArrayList<Cover>> covering = new HashMap<>();
         Dijkstra dij = new Dijkstra(g);
@@ -57,19 +58,19 @@ public class FeasibilityCheck {
 
                 if(kc < sensor.getKC()) {
                     //System.out.println("sensor " + sensor.getName() + " is not K covered.");
-                    return false;
+                    return Integer.MAX_VALUE;
                 }
             }
         }
 
         //Print coverings
-        for(SensorNode sensor: covering.keySet()) {
-            System.out.println("sensor " + sensor.getName() + " (KC=" + sensor.getKC() + ")  :" );
-            for(Cover cover: covering.get(sensor)) {
-                System.out.print(cover.getSink().getName() + " (" + cover.getCoverDistance() + ")  ");
-            }
-            System.out.println("\n");
-        }
+        //for(SensorNode sensor: covering.keySet()) {
+        //    System.out.println("sensor " + sensor.getName() + " (KC=" + sensor.getKC() + ")  :" );
+        //    for(Cover cover: covering.get(sensor)) {
+        //        System.out.print(cover.getSink().getName() + " (" + cover.getCoverDistance() + ")  ");
+        //    }
+        //    System.out.println("\n");
+        //}
 
         //Workload check
         HashMap<SinkNode,Integer> sumCpu = new HashMap<>();
@@ -97,19 +98,28 @@ public class FeasibilityCheck {
         for(SinkNode sink: sumCpu.keySet()) {
             if(sink.getCpu() < sumCpu.get(sink)) {
                 //System.out.println("sink " + sink.getName() + " has insufficient CPU.");
-                return false;
+                //System.out.println("needed " + sumCpu.get(sink) + " but has " + sink.getCpu());
+                return Integer.MAX_VALUE;
             }
             if(sink.getRam() < sumRam.get(sink)) {
                 //System.out.println("sink " + sink.getName() + " has insufficient RAM.");
-                return false;
+                return Integer.MAX_VALUE;
             }
             if(sink.getBandwidth() < sumBw.get(sink)) {
                 //System.out.println("sink " + sink.getName() + " has insufficient Bandwidth.");
-                return false;
+                return Integer.MAX_VALUE;
             }
         }
 
-        return true;
+        // graph is feasible return cost of sinks
+        int cost = 0;
+        for(Vertex v: g.getVertices()) {
+            Node n = v.getAssignedNode();
+            if (n instanceof SinkNode) {
+                cost += ((SinkNode) n).getCost();
+            }
+        }
+        return cost;
     }
 
 

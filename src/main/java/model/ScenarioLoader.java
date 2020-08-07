@@ -56,6 +56,7 @@ public class ScenarioLoader {
             while(scn.hasNextLine()){
                 String[] segments = scn.nextLine().split(",");
                 sinkTypes.add(new SinkConfiguration(
+                        segments[0],
                         Integer.parseInt(segments[1]),
                         Integer.parseInt(segments[2]),
                         Integer.parseInt(segments[3]),

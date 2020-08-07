@@ -34,6 +34,7 @@ public class GraphPainter {
                     else vgv.attrs().add("shape", "circle");
                 }
                 if (v.getAssignedNode() instanceof SinkNode) {
+                    vgv.setName(v.getAssignedNode().getName() + " [" + ((SinkNode) v.getAssignedNode()).getModelName() + "]");
                     vgv.attrs().add("shape", "box");
                     vgv.attrs().add("style","filled");
                     vgv.attrs().add("fillcolor","#CCCCCC");
