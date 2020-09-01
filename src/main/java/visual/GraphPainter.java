@@ -13,6 +13,8 @@ import model.SensorNode;
 import model.SinkNode;
 
 import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
 import java.util.HashMap;
 
 import static guru.nidi.graphviz.model.Factory.mutGraph;
@@ -32,17 +34,26 @@ public class GraphPainter {
                 if (v.getAssignedNode() instanceof SensorNode) {
                     if (((SensorNode) v.getAssignedNode()).isCritical()) vgv.attrs().add("shape", "doublecircle");
                     else vgv.attrs().add("shape", "circle");
+                    if(v.getPos() != null) {
+                        vgv.add("pos",v.getPos().x*10 + "," + v.getPos().y*10 + "!");
+                    }
                 }
                 if (v.getAssignedNode() instanceof SinkNode) {
                     vgv.setName(v.getAssignedNode().getName() + " [" + ((SinkNode) v.getAssignedNode()).getModelName() + "]");
                     vgv.attrs().add("shape", "box");
                     vgv.attrs().add("style","filled");
                     vgv.attrs().add("fillcolor","#CCCCCC");
+                    if(v.getPos() != null) {
+                        vgv.add("pos",v.getPos().x*10 + "," + v.getPos().y*10 + "!");
+                    }
                 }
             }else{
                 vgv = mutNode("C"+candidateCounter);
                 candidateCounter++;
                 vgv.attrs().add("shape", "box");
+                if(v.getPos() != null) {
+                    vgv.add("pos",v.getPos().x*10 + "," + v.getPos().y*10 + "!");
+                }
             }
 
             mg.add(vgv);
