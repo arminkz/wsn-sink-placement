@@ -1,6 +1,6 @@
 package optimization;
 
-import algorithm.Evaluator;
+import algorithm.FitnessEvaluator;
 import graph.Graph;
 import model.Scenario;
 import model.SinkCandidate;
@@ -100,6 +100,14 @@ public class GeneticAlgorithm {
             double avgFit = (double)sumFit / population.size();
             System.out.println("[GA] fitness best: " + bestFit + " avg: " + avgFit + " worst: " + worstFit);
 
+            // shift scores so they all in positive range
+            if(worstFit < 0) {
+                for(GAScore gs: scores) {
+                    gs.score += Math.abs(worstFit);
+                }
+            }
+            sumFit += Math.abs(worstFit)*scores.size();
+
             // calculate cumulative probability for RWS
             double[] cumulativeP = new double[population.size() + 1];
             cumulativeP[0] = 0;
@@ -170,7 +178,7 @@ public class GeneticAlgorithm {
 
         System.out.println("[GA] completed!");
         Graph gg = dnaToGraph(bestState.dna);
-        ShowGraph.showGraph("cost: " + Evaluator.evaluate(gg),gg);
+        ShowGraph.showGraph("fitness: " + FitnessEvaluator.evaluate(gg,maxCost),gg);
     }
 
     private Graph dnaToGraph(int[] dna) {
@@ -207,9 +215,7 @@ public class GeneticAlgorithm {
 
     private int fitness(GAState s) {
         // evaluate the graph
-        int eval = Evaluator.evaluate(dnaToGraph(s.dna));
-        if(eval == Integer.MAX_VALUE) return 1;
-        else return 1 + (maxCost - eval);
+        return FitnessEvaluator.evaluate(dnaToGraph(s.dna),maxCost);
     }
 
     private GAState crossover(GAState a, GAState b) {

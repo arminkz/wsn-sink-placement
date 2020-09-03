@@ -4,6 +4,7 @@ import graph.Edge;
 import graph.Graph;
 import graph.Vertex;
 
+import java.awt.*;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -23,7 +24,8 @@ public class ScenarioLoader {
             File graphFile = new File(path + "graph.csv");
 
             Graph g = new Graph();
-            HashMap<Integer, Vertex> vertexMap = new HashMap<>();
+            //HashMap<Integer, Vertex> vertexMap = new HashMap<>();
+            int maxSeenIndex=-1;
 
             // load Graph
             scn = new Scanner(graphFile, StandardCharsets.UTF_8);
@@ -35,18 +37,15 @@ public class ScenarioLoader {
                 int weight = Integer.parseInt(segments[2]);
 
                 //create vertices if they are not present
-                if(!vertexMap.containsKey(src)) {
-                    Vertex v = new Vertex();
-                    vertexMap.put(src, v);
-                    g.addVertex(v);
+                if(Math.max(src,to) > maxSeenIndex) {
+                    for (int i = 0; i < Math.max(src,to) - maxSeenIndex; i++) {
+                        g.addVertex(new Vertex());
+                    }
+                    maxSeenIndex = Math.max(src,to);
                 }
-                if(!vertexMap.containsKey(to)) {
-                    Vertex v = new Vertex();
-                    vertexMap.put(to, v);
-                    g.addVertex(v);
-                }
+
                 //add edges
-                g.addEdge(vertexMap.get(src),vertexMap.get(to),weight);
+                g.addEdge(g.getVertices().get(src),g.getVertices().get(to),weight);
             }
 
             // load Sinks Types
@@ -77,7 +76,12 @@ public class ScenarioLoader {
                         Integer.parseInt(segments[4]),
                         Integer.parseInt(segments[5]),
                         Integer.parseInt(segments[6]));
-                vertexMap.get(vertexIndex).setNode(sensor);
+                g.getVertices().get(vertexIndex).setNode(sensor);
+                // optional pos
+                if(segments.length > 8) {
+                    g.getVertices().get(vertexIndex)
+                            .setPos(new Point(Integer.parseInt(segments[7]),Integer.parseInt(segments[8])));
+                }
             }
 
             // load sink indexes (don't add node in graph but store in candidate object)
@@ -85,11 +89,17 @@ public class ScenarioLoader {
             scn = new Scanner(sinksFile, StandardCharsets.UTF_8);
             scn.nextLine(); //discard header
             while(scn.hasNextLine()){
-                int vertexIndex = Integer.parseInt(scn.nextLine());
+                String[] segments = scn.nextLine().split(",");
+                int vertexIndex = Integer.parseInt(segments[0]);
                 // build SinkCandidate object
                 SinkCandidate sc = new SinkCandidate();
                 sc.setPlacmentVertex(vertexIndex);
                 sinkCandidates.add(sc);
+                // optional pos
+                if(segments.length > 2) {
+                    g.getVertices().get(vertexIndex)
+                            .setPos(new Point(Integer.parseInt(segments[1]),Integer.parseInt(segments[2])));
+                }
             }
 
             return new Scenario(g,sinkTypes,sinkCandidates);

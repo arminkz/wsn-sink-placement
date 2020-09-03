@@ -11,13 +11,21 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
 
-public class Evaluator {
+public class FitnessEvaluator {
 
-    // returns INF Cost if graph is not feasible, otherwise returns cost of sink placement
-    public static int evaluate(Graph g) {
+    public static final int COST_MULTIPLIER = 500;
+    public static final int KC_PENALTY_COEFF = 100;
+    public static final int CPU_PENALTY_COEFF = 1;
+    public static final int RAM_PENALTY_COEFF = 1;
+    public static final int BW_PENALTY_COEFF = 1;
+
+    // returns overall fitness of a configuration
+    public static int evaluate(Graph g, int maxCost) {
 
         HashMap<SensorNode, ArrayList<Cover>> covering = new HashMap<>();
         Dijkstra dij = new Dijkstra(g);
+
+        int fitness = 0;
 
         for(Vertex v: g.getVertices()) {
             Node n = v.getAssignedNode();
@@ -57,8 +65,8 @@ public class Evaluator {
                 }
 
                 if(kc < sensor.getKC()) {
-                    //System.out.println("sensor " + sensor.getName() + " is not K covered.");
-                    return Integer.MAX_VALUE;
+                    // apply Kcovered violation penalty
+                    fitness -= KC_PENALTY_COEFF * (sensor.getKC() - kc);
                 }
             }
         }
@@ -79,6 +87,7 @@ public class Evaluator {
 
         for(SensorNode sensor: covering.keySet()){
             int n = covering.get(sensor).size(); // uniform distribution
+            if(n == 0) continue; // this sensor is not covered at all
             int partialCpu = sensor.getTaskCpu() / n;
             int partialRam = sensor.getTaskRam() / n;
             int partialBw = sensor.getTaskBw() / n;
@@ -97,29 +106,31 @@ public class Evaluator {
 
         for(SinkNode sink: sumCpu.keySet()) {
             if(sink.getCpu() < sumCpu.get(sink)) {
-                //System.out.println("sink " + sink.getName() + " has insufficient CPU.");
-                //System.out.println("needed " + sumCpu.get(sink) + " but has " + sink.getCpu());
-                return Integer.MAX_VALUE;
+                // apply cpu violation penalty
+                fitness -= CPU_PENALTY_COEFF * (sumCpu.get(sink)-sink.getCpu());
             }
             if(sink.getRam() < sumRam.get(sink)) {
-                //System.out.println("sink " + sink.getName() + " has insufficient RAM.");
-                return Integer.MAX_VALUE;
+                // apply ram violation penalty
+                fitness -= RAM_PENALTY_COEFF * (sumRam.get(sink)-sink.getRam());
             }
             if(sink.getBandwidth() < sumBw.get(sink)) {
-                //System.out.println("sink " + sink.getName() + " has insufficient Bandwidth.");
-                return Integer.MAX_VALUE;
+                // apply bandwidth violation penalty
+                fitness -= BW_PENALTY_COEFF * (sumBw.get(sink)-sink.getBandwidth());
             }
         }
 
-        // graph is feasible return cost of sinks
-        int cost = 0;
-        for(Vertex v: g.getVertices()) {
-            Node n = v.getAssignedNode();
-            if (n instanceof SinkNode) {
-                cost += ((SinkNode) n).getCost();
+        if(fitness == 0) {
+            // graph is feasible return fitness based on cost of sinks
+            int cost = 0;
+            for(Vertex v: g.getVertices()) {
+                Node n = v.getAssignedNode();
+                if (n instanceof SinkNode) {
+                    cost += ((SinkNode) n).getCost();
+                }
             }
+            fitness = 1 + COST_MULTIPLIER*(maxCost - cost);
         }
-        return cost;
+        return fitness;
     }
 
 

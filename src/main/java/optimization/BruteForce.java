@@ -1,12 +1,11 @@
 package optimization;
 
-import algorithm.Evaluator;
+import algorithm.FitnessEvaluator;
 import graph.Graph;
-import graph.Vertex;
 import model.*;
 import visual.ShowGraph;
 
-import java.sql.SQLOutput;
+import java.util.Comparator;
 
 public class BruteForce {
 
@@ -16,24 +15,33 @@ public class BruteForce {
     int nSink;
     int nOption;
 
-    private int leafCount = 0;
+    private final double answerSpace;
+    private double leafCount = 0;
+    private int progress = -1;
+
     private Graph bestAnswer = null;
-    private int bestCost = Integer.MAX_VALUE;
+    private int bestFitness = Integer.MIN_VALUE;
+
+    private final int maxCost;
 
     public BruteForce(Scenario scenario) {
         this.scenario = scenario;
         root = scenario.getRootGraph();
         nSink = scenario.getSinkCandidates().size();
         nOption = scenario.getSinkTypes().size();
+        answerSpace = Math.pow(nOption+1,nSink);
+
+        maxCost = scenario.getSinkCandidates().size() *
+                scenario.getSinkTypes().stream().max(Comparator.comparingInt(SinkConfiguration::getCost)).get().getCost();
     }
 
     public void solve() {
         solveUtil(root,0);
         if(bestAnswer == null) {
-            System.out.println("there is no feasible answer to this problem.");
+            System.out.println("[BF] there is no feasible answer to this problem.");
         } else {
-            System.out.println("brute force explored " + leafCount + " states.");
-            ShowGraph.showGraph("best answer (cost=" + bestCost + ")" ,bestAnswer);
+            System.out.println("[BF] brute force explored " + leafCount + " states.");
+            ShowGraph.showGraph("[BF] best answer (fitness=" + bestFitness + ")" ,bestAnswer);
         }
 
     }
@@ -43,14 +51,20 @@ public class BruteForce {
             // backtrack reached leaf
             leafCount++;
 
-            int cost = Evaluator.evaluate(graph);
-            if(cost != Integer.MAX_VALUE) {
+            double p = (leafCount / answerSpace) * 100;
+            if((int)p != progress) {
+                progress = (int)p;
+                System.out.println("[BF] progress " + progress + "%");
+            }
+
+            int fitness = FitnessEvaluator.evaluate(graph,maxCost);
+            if(fitness > 0) {
                 // solution is feasible
-                System.out.println("feasible graph reached with cost " + cost);
-                if(bestAnswer == null || cost < bestCost) {
-                    bestCost = cost;
-                    bestAnswer = graph;
-                }
+                System.out.println("[BF] feasible graph reached with fitness " + fitness);
+            }
+            if(bestAnswer == null || fitness > bestFitness) {
+                bestFitness = fitness;
+                bestAnswer = graph;
             }
             return;
         }

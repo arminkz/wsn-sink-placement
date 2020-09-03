@@ -1,6 +1,6 @@
-import algorithm.Evaluator;
-import graph.Graph;
-import model.*;
+import model.RandomScenarioGenerator;
+import model.Scenario;
+import model.ScenarioLoader;
 import optimization.BruteForce;
 import optimization.GeneticAlgorithm;
 import visual.GraphPanel;
@@ -11,19 +11,19 @@ import java.awt.*;
 public class GUI extends JPanel {
 
     private GUI(){
-//        Scenario s = ScenarioLoader.loadFromFile("data/toy_example/");
-//
-//        this.setLayout(new BorderLayout());
-//        this.add(new GraphPanel(s.getRootGraph()));
-//
-////        BruteForce bf = new BruteForce(s);
-////        bf.solve();
-//
-//        GeneticAlgorithm ga = new GeneticAlgorithm(s,500,0.2,0.1,20);
-//        ga.solve();
-        Graph ex1 = GenerateGraph.realistic(60,30,200,100,20);
+
+        //RandomScenarioGenerator.generate("WSN2",100,40,200,200,22);
+
+        Scenario s = ScenarioLoader.loadFromFile("data/WSN2/");
+
         this.setLayout(new BorderLayout());
-        this.add(new GraphPanel(ex1));
+        this.add(new GraphPanel(s.getRootGraph()));
+//
+//        BruteForce bf = new BruteForce(s);
+//        bf.solve();
+
+        GeneticAlgorithm ga = new GeneticAlgorithm(s,500,0.05,0.1,20);
+        ga.solve();
     }
 
     public static void run() {
