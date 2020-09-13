@@ -105,15 +105,15 @@ public class GeneticAlgorithm {
                 for(GAScore gs: scores) {
                     gs.score += Math.abs(worstFit);
                 }
+                sumFit += Math.abs(worstFit)*scores.size();
             }
-            sumFit += Math.abs(worstFit)*scores.size();
 
             // calculate cumulative probability for RWS
             double[] cumulativeP = new double[population.size() + 1];
             cumulativeP[0] = 0;
             double cumulativeS = 0;
-            for (int j = 1; j <= scores.size(); j++) {
-                double p = (double)scores.get(j - 1).score / sumFit;
+            for (int j = 0; j < scores.size(); j++) {
+                double p = (double)scores.get(j).score / sumFit;
                 cumulativeS += p;
                 cumulativeP[j] = cumulativeS;
             }

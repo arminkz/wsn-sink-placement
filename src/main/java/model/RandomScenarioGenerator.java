@@ -22,14 +22,9 @@ public class RandomScenarioGenerator {
         //TODO: this data should not be hard coded
         String[] possibleSensorStrings = {
                 "1,2,0,0,200",
+                "1,4,0,0,200",
                 "2,3,20,500,300",
-                "2,3,30,500,500",
-                "1,2,0,0,200",
-                "1,3,0,0,400",
-                "2,2,60,6600,300",
-                "2,3,40,700,400",
-                "2,3,50,700,400",
-                "1,2,0,0,150"
+                "2,3,30,500,500"
         };
 
         File directory = new File("data/" + scenario_name);
@@ -54,10 +49,11 @@ public class RandomScenarioGenerator {
         ArrayList<Vertex> vertices = new ArrayList<>();
         int n = sensor_count + sc_count;
         Random rnd = new Random(77);
-        HaltonSequenceGenerator halton = new HaltonSequenceGenerator(2);
+        HaltonSequenceGenerator halton1d = new HaltonSequenceGenerator(1);
+        HaltonSequenceGenerator halton2d = new HaltonSequenceGenerator(2);
 
         for (int i = 0; i < n; i++) {
-            double[] vec = halton.nextVector();
+            double[] vec = halton2d.nextVector();
             int px = (int)(vec[0] * tx);
             int py = (int)(vec[1] * ty);
             Point pt = new Point(px,py);
@@ -104,7 +100,7 @@ public class RandomScenarioGenerator {
             //write headers
             wrt.write("vertex,(posx),(posy)\n");
             for (int i = 0; i < sc_count; i++) {
-                int k = rnd.nextInt(possibleSCs.size());
+                int k = (int)(halton1d.nextVector()[0] * possibleSCs.size());
                 int index = possibleSCs.get(k);
                 possibleSCs.remove(k);
                 Point pos = vertices.get(index).getPos();
