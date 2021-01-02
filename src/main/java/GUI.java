@@ -1,9 +1,6 @@
-import model.RandomScenarioGenerator;
 import model.Scenario;
 import model.ScenarioLoader;
-import optimization.BruteForce;
-import optimization.GeneticAlgorithm;
-import optimization.HillClimbing;
+import optimization.FastHillClimbing;
 import visual.GraphPanel;
 
 import javax.swing.*;
@@ -13,12 +10,15 @@ public class GUI extends JPanel {
 
     private GUI(){
 
-//      RandomScenarioGenerator.generate("WSN2",45,30,200,150,29);
+        //RandomScenarioGenerator.generate("WSN3",40,20,150,150,29);
 
         Scenario s = ScenarioLoader.loadFromFile("data/WSN2/");
 
         this.setLayout(new BorderLayout());
         this.add(new GraphPanel(s.getRootGraph()));
+
+        FastHillClimbing fhc = new FastHillClimbing(s,5);
+        fhc.solve();
 
 //      BruteForce bf = new BruteForce(s);
 //      bf.solve();
@@ -26,8 +26,8 @@ public class GUI extends JPanel {
 //      GeneticAlgorithm ga = new GeneticAlgorithm(s,500,0.05,0.1,20);
 //      ga.solve();
 
-        HillClimbing hc = new HillClimbing(s);
-        hc.solve();
+//      HillClimbing hc = new HillClimbing(s);
+//      hc.solve();
     }
 
     public static void run() {

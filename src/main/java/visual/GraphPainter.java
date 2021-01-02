@@ -13,8 +13,6 @@ import model.SensorNode;
 import model.SinkNode;
 
 import java.awt.image.BufferedImage;
-import java.io.File;
-import java.io.IOException;
 import java.util.HashMap;
 
 import static guru.nidi.graphviz.model.Factory.mutGraph;
@@ -42,7 +40,7 @@ public class GraphPainter {
                     vgv.setName(v.getAssignedNode().getName() + " [" + ((SinkNode) v.getAssignedNode()).getModelName() + "]");
                     vgv.attrs().add("shape", "box");
                     vgv.attrs().add("style","filled");
-                    vgv.attrs().add("fillcolor","#CCCCCC");
+                    vgv.attrs().add("color","#CCCCCC");
                     if(v.getPos() != null) {
                         vgv.add("pos",v.getPos().x*10 + "," + v.getPos().y*10 + "!");
                     }
@@ -54,6 +52,21 @@ public class GraphPainter {
                 if(v.getPos() != null) {
                     vgv.add("pos",v.getPos().x*10 + "," + v.getPos().y*10 + "!");
                 }
+            }
+
+            //set color (overrides)
+            if(v.getColor().size() > 0) {
+                StringBuilder finalColorStr = new StringBuilder();
+                for (int i = 0; i < v.getColor().size(); i++) {
+                    finalColorStr.append(v.getColor().get(i));
+                    if(i != v.getColor().size()-1) finalColorStr.append(":");
+                }
+                //set color
+                if(v.getColor().size() == 1) vgv.attrs().add("style","filled");
+                else vgv.attrs().add("style","wedged");
+                vgv.attrs().add("color",finalColorStr.toString());
+                vgv.attrs().add("fontcolor","white");
+                vgv.attrs().add("fontname","times-bold");
             }
 
             mg.add(vgv);

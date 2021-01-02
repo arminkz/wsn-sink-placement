@@ -20,6 +20,8 @@ public class FitnessEvaluator {
     public static final int BW_PENALTY_COEFF = 1;
 
     // returns overall fitness of a configuration
+    // TODO: change fitness formula
+    // TODO: implement with Z
     public static int evaluate(Graph g, int maxCost) {
 
         HashMap<SensorNode, ArrayList<Cover>> covering = new HashMap<>();
