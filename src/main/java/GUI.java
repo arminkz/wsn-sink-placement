@@ -1,5 +1,5 @@
-import model.Scenario;
-import model.ScenarioLoader;
+import algorithm.Fitness;
+import model.*;
 import optimization.FastHillClimbing;
 import visual.GraphPanel;
 
@@ -12,13 +12,23 @@ public class GUI extends JPanel {
 
         //RandomScenarioGenerator.generate("WSN3",40,20,150,150,29);
 
-        Scenario s = ScenarioLoader.loadFromFile("data/WSN2/");
+        Scenario s = ScenarioLoader.loadFromFile("data/toy_example/");
+
+        int c = 1;
+        SinkConfiguration conf = s.getSinkTypes().get(0);
+        for (SinkCandidate sc : s.getSinkCandidates()) {
+            int pi = sc.getPlacmentVertexIndex();
+            s.getRootGraph().getVertices().get(pi).setNode(new SinkNode("S" + c, conf));
+            c++;
+        }
 
         this.setLayout(new BorderLayout());
         this.add(new GraphPanel(s.getRootGraph()));
 
-        FastHillClimbing fhc = new FastHillClimbing(s,5);
-        fhc.solve();
+        System.out.println("Fitness: " + Fitness.calc(s.getRootGraph(),true));
+
+//      FastHillClimbing fhc = new FastHillClimbing(s,7);
+//      fhc.solve();
 
 //      BruteForce bf = new BruteForce(s);
 //      bf.solve();

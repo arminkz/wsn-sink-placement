@@ -49,7 +49,6 @@ public class FastHillClimbing {
         N = root.getVertices().size();
         nSink = scenario.getSinkCandidates().size();
         nOption = scenario.getSinkTypes().size();
-
         //assignment = new HashMap<>();
     }
 
