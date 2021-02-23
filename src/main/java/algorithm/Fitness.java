@@ -12,7 +12,7 @@ import java.util.HashMap;
 
 public class Fitness {
 
-    private static String[] colors = {
+    private static final String[] colors = {
             "blue",
             "red",
             "green",
@@ -61,11 +61,11 @@ public class Fitness {
         ShowGraph.showGraph("Y",g);
     }
 
-    public static int calc(Graph g) {
-        return calc(g,false);
+    public static double calc(Graph g, int maxCost) {
+        return calc(g, maxCost, false);
     }
 
-    public static int calc(Graph g, boolean verbose) {
+    public static double calc(Graph g, int maxCost, boolean verbose) {
         // Hash to get Index in vertices list
         HashMap<Integer,Integer> sinksVI = new HashMap<>();
         HashMap<Integer,Integer> sensorsVI = new HashMap<>();
@@ -195,30 +195,52 @@ public class Fitness {
         //Now we have Y ready we can calculate fitness
         //Sensor Based Penalties
         int P1 = 0;
+        int P1_max = 0;
         for (int i = 0; i < sensorCount; i++) {
             SensorNode sn = (SensorNode)(g.getVertices().get(sensorsVI.get(i)).getAssignedNode());
             int sum = 0;
             for (int j = 0; j < sinkCount; j++) {
                 sum += Y[i][j];
             }
-            P1 = Math.max(0, sn.getKC() - sum);
+            P1 += Math.max(0, sn.getKC() - sum);
+            P1_max += sn.getKC();
         }
 
         //Sink Based Penalties
         int cost = 0;
         int P2 = 0;
+        int P2_max = 0;
         int P3 = 0;
+        int P3_max = 0;
         int P4 = 0;
+        int P4_max = 0;
         for (int i = 0; i < sinkCount; i++) {
             SinkNode sk = (SinkNode)(g.getVertices().get(sinksVI.get(i)).getAssignedNode());
             cost += sk.getCost();
             P2 += Math.max(0, loadCPU.get(sk) - sk.getCpu());
+            P2_max += loadCPU.get(sk);
             P3 += Math.max(0, loadRAM.get(sk) - sk.getRam());
+            P3_max += loadRAM.get(sk);
             P4 += Math.max(0, loadBW.get(sk) - sk.getBandwidth());
+            P4_max += loadBW.get(sk);
         }
 
         //TODO: coeff for each nominal
-        return cost + P1 + P2 + P3 + P4;
+        double cost_normal = (double)cost / maxCost;
+        double P1_normal = (double)P1 / P1_max;
+        double P2_normal = (double)P2 / P2_max;
+        double P3_normal = (double)P3 / P3_max;
+        double P4_normal = (double)P4 / P4_max;
+
+        //print normalized sub-scores
+        if(verbose) {
+            System.out.println("[Fitness] Cost Score: " + cost_normal);
+            System.out.println("[Fitness] P1 Score: " + P1_normal);
+            System.out.println("[Fitness] P2 Score: " + P2_normal);
+            System.out.println("[Fitness] P3 Score: " + P3_normal);
+            System.out.println("[Fitness] P4 Score: " + P4_normal);
+        }
+        return (cost_normal + P1_normal + P2_normal + P3_normal + P4_normal) / 5;
     }
 
 }
