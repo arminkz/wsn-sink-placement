@@ -1,5 +1,6 @@
 package optimization;
 
+import algorithm.Fitness;
 import algorithm.FitnessEvaluator;
 import graph.Graph;
 import model.*;
@@ -20,7 +21,7 @@ public class BruteForce {
     private int progress = -1;
 
     private Graph bestAnswer = null;
-    private int bestFitness = Integer.MIN_VALUE;
+    private double bestFitness = Double.MAX_VALUE;
 
     private final int maxCost;
 
@@ -36,35 +37,37 @@ public class BruteForce {
     }
 
     public void solve() {
+        long start = System.currentTimeMillis();
         solveUtil(root,0);
         if(bestAnswer == null) {
             System.out.println("[BF] there is no feasible answer to this problem.");
         } else {
             System.out.println("[BF] brute force explored " + leafCount + " states.");
-            ShowGraph.showGraph("[BF] best answer (fitness=" + bestFitness + ")" ,bestAnswer);
+            System.out.println("[BF] execution time: " + (System.currentTimeMillis() - start) + "ms");
+            ShowGraph.showGraphWithCoverage("[BF] best answer (fitness=" + bestFitness + ")" ,bestAnswer);
         }
-
     }
 
     private void solveUtil(Graph graph, int loc) {
         if(loc == nSink) {
             // backtrack reached leaf
             leafCount++;
+            // ShowGraph.showGraph("fitness: " + Fitness.calc(graph,maxCost),graph);
 
             double p = (leafCount / answerSpace) * 100;
             if((int)p != progress) {
                 progress = (int)p;
-                System.out.println("[BF] progress " + progress + "%");
+                System.out.print("\r[BF] progress " + progress + "%");
+                if(progress == 100) System.out.print("\n");
             }
 
-            int fitness = FitnessEvaluator.evaluate(graph,maxCost);
-            if(fitness > 0) {
-                // solution is feasible
-                System.out.println("[BF] feasible graph reached with fitness " + fitness);
-            }
-            if(bestAnswer == null || fitness > bestFitness) {
+            double fitness = Fitness.calc(graph, maxCost);
+            if (Double.isNaN(fitness)) return;
+
+            if(bestAnswer == null || fitness < bestFitness) {
                 bestFitness = fitness;
                 bestAnswer = graph;
+                System.out.print("\rBest Fitness Updated : " + bestFitness);
             }
             return;
         }
