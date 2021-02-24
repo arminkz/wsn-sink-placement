@@ -20,6 +20,10 @@ public class GraphPanel extends JPanel {
         plot = GraphPainter.viewGraph(graph);
     }
 
+    public Dimension getOptimalSize() {
+        return new Dimension(plot.getWidth(),plot.getHeight());
+    }
+
     @Override
     public void paint(Graphics g) {
         super.paint(g);
@@ -27,9 +31,7 @@ public class GraphPanel extends JPanel {
         g2d.setColor(Color.WHITE);
         g2d.fillRect(0,0,getWidth(),getHeight());
         if(plot != null) {
-            int x = (this.getWidth() - plot.getWidth())/2;
-            int y = (this.getHeight() - plot.getHeight())/2;
-            g2d.drawImage(plot,null,x,y);
+            g2d.drawImage(plot,0,0,this.getWidth(),this.getHeight(),null);
         }
     }
 }

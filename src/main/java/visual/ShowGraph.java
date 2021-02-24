@@ -27,10 +27,11 @@ public class ShowGraph extends JPanel {
 
     public static void showGraph(String title, Graph g) {
         JPanel parent = new JPanel(new BorderLayout());
-        parent.add(new GraphPanel(g));
+        GraphPanel graphPanel = new GraphPanel(g);
+        parent.add(graphPanel);
 
         JFrame window = new JFrame(title);
-        window.setSize(500,500);
+        window.setSize(graphPanel.getOptimalSize());
         window.add(parent);
         window.setVisible(true);
     }
