@@ -1,5 +1,6 @@
-package model; //Created by Armin (github.com/arminkz)
+package misc; //Created by Armin (github.com/arminkz)
 
+import model.SensorNode;
 import org.apache.commons.math3.random.HaltonSequenceGenerator;
 
 import graph.Graph;
