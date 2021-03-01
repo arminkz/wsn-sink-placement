@@ -11,7 +11,9 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
 
-public class FitnessEvaluator {
+// this class is obsolete and Fitness should be used instead
+@Deprecated
+public class FitnessLegacy {
 
     public static final int COST_MULTIPLIER = 500;
     public static final int KC_PENALTY_COEFF = 100;
