@@ -1,7 +1,6 @@
 package optimization;
 
 import algorithm.Fitness;
-import algorithm.FitnessEvaluator;
 import graph.Graph;
 import model.*;
 import visual.ShowGraph;

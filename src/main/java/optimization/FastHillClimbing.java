@@ -1,8 +1,10 @@
 package optimization;
 
 import algorithm.Dijkstra;
+import algorithm.Fitness;
 import graph.Graph;
 import model.*;
+import report.Report;
 import visual.ShowGraph;
 
 import java.util.*;
@@ -17,14 +19,14 @@ public class FastHillClimbing {
 
     HashMap<Integer,Integer> open;
 
-    HashMap<Integer,ArrayList<SensorNode>> assignment;
-
     int Q;
 
     int[][] adj;
     int N;
     int nSink;
     int nOption;
+
+    private final int maxCost;
 
     String[] colors = {
             "blue",
@@ -49,11 +51,13 @@ public class FastHillClimbing {
         N = root.getVertices().size();
         nSink = scenario.getSinkCandidates().size();
         nOption = scenario.getSinkTypes().size();
-        //assignment = new HashMap<>();
+
+        maxCost = scenario.getSinkCandidates().size() *
+                scenario.getSinkTypes().stream().max(Comparator.comparingInt(SinkConfiguration::getCost)).get().getCost();
     }
 
-    public void solve() {
-
+    public Report solve() {
+        long startTime = System.currentTimeMillis();
         //add all sensorNodes to open with their K
         open = new HashMap<>();
         for (int i = 0; i < N; i++) {
@@ -63,11 +67,13 @@ public class FastHillClimbing {
             }
         }
 
+        //used to store chosen types
+        int[] assignment = new int[scenario.getSinkCandidates().size()];
+
         //assign to Sink
         int c = 0;
         for (SinkCandidate sc : scenario.getSinkCandidates()) {
-            System.out.println("processing C" + c);
-            c++;
+            //System.out.println("processing C" + c);
             int sci = sc.getPlacmentVertexIndex();
 
             //put a record for sinkCandidate
@@ -105,7 +111,8 @@ public class FastHillClimbing {
                             conf.getRam() >= totalRAM + sensorToAdd.getTaskRam() &&
                             conf.getBandwidth() >= totalBW + sensorToAdd.getTaskBw()) {
                         //this sensor could be added
-                        System.out.println("SinkConf " + conf.getModelName() + " can handle this.");
+                        //System.out.println("SinkConf " + conf.getModelName() + " can handle this.");
+                        assignment[c] = scenario.getSinkTypes().indexOf(conf);
                         canBeCovered = true;
                         break;
                     }
@@ -126,25 +133,101 @@ public class FastHillClimbing {
                     //reduce the K value in open map
                     open.put(o, open.get(o) - 1);
 
-                    System.out.println("added sensor " + sensorToAdd.getName() + " to C" + c);
+                    //System.out.println("added sensor " + sensorToAdd.getName() + " to C" + c);
                 } else {
-                    System.out.println("skipping sensor " + sensorToAdd.getName());
+                    //System.out.println("skipping sensor " + sensorToAdd.getName());
                 }
             }
+            c++;
         }
 
         //show graph after heuristic method
-        ShowGraph.showGraph("Heuristic Result", root);
+        //ShowGraph.showGraph("Local search start point", root);
 
         //if there is uncovered sensor your are messed up
         if (open.entrySet().stream()
                 .filter(e -> e.getValue() > 0)
                 .map(Map.Entry::getKey).count() > 0) {
-            System.err.println("you have uncovered sensors!");
+            System.err.println("[FHC] you have uncovered sensors!");
             System.out.println(open.entrySet().stream()
                     .filter(e -> e.getValue() > 0)
                     .collect(Collectors.toList()));
         }
+
+        //start local search
+        System.out.println("[FHC] starting local search");
+        HillClimbing.HCState start = new HillClimbing.HCState(nSink);
+        for (int j = 0; j < nSink; j++) {
+            start.dna[j] = assignment[j] + 1;
+        }
+        HillClimbing.HCState currentState = start;
+
+        while(true) {
+            ArrayList<HillClimbing.HCState> neighbours = getNeighbours(currentState);
+
+            double bestFitness = Integer.MAX_VALUE;
+            HillClimbing.HCState nextState = null;
+            for(HillClimbing.HCState n : neighbours) {
+                double f = fitness(n);
+                if(f < bestFitness) {
+                    nextState = n;
+                    bestFitness = f;
+                }
+            }
+
+            if(bestFitness >= fitness(currentState)) {
+                //Return current state since no better neighbors exist
+                System.out.println("[FHC] completed !");
+                Graph gg = dnaToGraph(currentState.dna);
+                double ff = Fitness.calc(gg,maxCost);
+                long time = (System.currentTimeMillis() - startTime);
+
+                System.out.println("[FHC] time: " + time + "ms");
+                return new Report(gg,ff,time);
+            }
+
+            System.out.println("[FHC] updating state (Fitness: " + bestFitness + ")");
+            currentState = nextState;
+        }
+
+    }
+
+    private Graph dnaToGraph(int[] dna) {
+        Graph pGraph = root.clone();
+        // create graph based on dna
+        for (int i = 0; i < dna.length; i++) {
+            int dnaValue = dna[i];
+            // if dna value is 0 we don't need to place anything
+            if(dnaValue != 0) {
+                // the candidate we are placing now
+                SinkCandidate candidate = scenario.getSinkCandidates().get(i);
+                // the sink type we're placing
+                SinkConfiguration config = scenario.getSinkTypes().get(dnaValue-1);
+                // place sink
+                int vi = candidate.getPlacmentVertexIndex();
+                pGraph.getVertices().get(vi).setNode(new SinkNode("S" + (i + 1), config));
+            }
+        }
+        return pGraph;
+    }
+
+    private ArrayList<HillClimbing.HCState> getNeighbours(HillClimbing.HCState state) {
+        ArrayList<HillClimbing.HCState> result = new ArrayList<>();
+        for (int i = 0; i < nSink; i++) {
+            for (int j = 0; j <= nOption; j++) {
+                // change the ith dna to j
+                HillClimbing.HCState neighbour = new HillClimbing.HCState(nSink);
+                neighbour.dna = Arrays.copyOf(state.dna,nSink);
+                neighbour.dna[i] = j;
+                result.add(neighbour);
+            }
+        }
+        return result;
+    }
+
+    private double fitness(HillClimbing.HCState s) {
+        // evaluate the graph
+        return Fitness.calc(dnaToGraph(s.dna), maxCost);
     }
 
 }

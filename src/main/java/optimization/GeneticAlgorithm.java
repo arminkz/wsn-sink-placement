@@ -1,12 +1,12 @@
 package optimization;
 
-import algorithm.FitnessEvaluator;
+import algorithm.Fitness;
 import graph.Graph;
 import model.Scenario;
 import model.SinkCandidate;
 import model.SinkConfiguration;
 import model.SinkNode;
-import visual.ShowGraph;
+import report.Report;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -37,14 +37,14 @@ public class GeneticAlgorithm {
 
     static class GAScore {
         public GAState state;
-        public int score;
+        public double score;
 
-        public GAScore(GAState state,int score){
+        public GAScore(GAState state,double score){
             this.state = state;
             this.score = score;
         }
 
-        public int getScore() { return score; }
+        public double getScore() { return score; }
     }
 
     Scenario scenario;
@@ -75,7 +75,8 @@ public class GeneticAlgorithm {
                   scenario.getSinkTypes().stream().max(Comparator.comparingInt(SinkConfiguration::getCost)).get().getCost();
     }
 
-    public void solve() {
+    public Report solve() {
+        long startTime = System.currentTimeMillis();
 
         // initialization
         ArrayList<GAState> population = initialPopulation();
@@ -86,37 +87,46 @@ public class GeneticAlgorithm {
             System.out.println("[GA] running generation "+ i + "...");
 
             // calc each specie's fitness
-            int sumFit = 0;
-            int bestFit = Integer.MIN_VALUE;
-            int worstFit = Integer.MAX_VALUE;
+            double sumFit = 0;
+            double bestFit = Double.MAX_VALUE;
+            double worstFit = Double.MIN_VALUE;
             ArrayList<GAScore> scores = new ArrayList<>();
             for (GAState s: population) {
-                int fitness = fitness(s);
-                scores.add(new GAScore(s, fitness));
-                sumFit += fitness;
-                if(fitness < worstFit) worstFit = fitness;
-                if(fitness > bestFit) bestFit = fitness;
+                double fitness = fitness(s);
+                // use (1 - fitness) so worst case would have 0 score
+                scores.add(new GAScore(s, 1.0 - fitness));
+                sumFit += 1.0 - fitness;
+                if(fitness > worstFit) worstFit = fitness;
+                if(fitness < bestFit) bestFit = fitness;
             }
-            double avgFit = (double)sumFit / population.size();
+            double avgFit = sumFit / population.size();
             System.out.println("[GA] fitness best: " + bestFit + " avg: " + avgFit + " worst: " + worstFit);
 
             // shift scores so they all in positive range
-            if(worstFit < 0) {
-                for(GAScore gs: scores) {
-                    gs.score += Math.abs(worstFit);
-                }
-                sumFit += Math.abs(worstFit)*scores.size();
-            }
+            // in new fitness algorithm we dont have negative fitness
+//            if(worstFit < 0) {
+//                for(GAScore gs: scores) {
+//                    gs.score += Math.abs(worstFit);
+//                }
+//                sumFit += Math.abs(worstFit)*scores.size();
+//            }
+//            System.out.println("Population Size: " + population.size() + " Fitness Sum: " + sumFit);
+//            double test_s = 0.0;
+//            for(GAScore s: scores) {
+//                System.out.println(s.score / sumFit);
+//                test_s += s.score / sumFit;
+//            }
+//            System.out.println("Total : " + test_s);
 
             // calculate cumulative probability for RWS
-            double[] cumulativeP = new double[population.size() + 1];
-            cumulativeP[0] = 0;
-            double cumulativeS = 0;
+            double[] probability = new double[population.size()];
+            double probability_offset = 0.0;
             for (int j = 0; j < scores.size(); j++) {
-                double p = (double)scores.get(j).score / sumFit;
-                cumulativeS += p;
-                cumulativeP[j] = cumulativeS;
+                double p = scores.get(j).score / sumFit;
+                probability[j] = probability_offset + p;
+                probability_offset += p;
             }
+//            System.out.println(Arrays.toString(probability));
 
             // perform RWS for natural selection
             ArrayList<GAState> selectedPopulation = new ArrayList<>();
@@ -124,26 +134,27 @@ public class GeneticAlgorithm {
             while (selectedPopulation.size() < population_size) {
                 double r = rnd.nextDouble();
                 for (int j = 0; j < population_size; j++) {
-                    if (r < cumulativeP[j]) {
-                        //select i-1 nth element
+                    if (r < probability[j]) {
+                        //select jth element
                         selectedPopulation.add(scores.get(j).state);
                         break;
                     }
                 }
             }
-//            ArrayList<GAState> selectedPopulation = new ArrayList<>();
-//            scores.stream().sorted(Comparator.comparingInt(GAScore::getScore)).
+//          ArrayList<GAState> selectedPopulation = new ArrayList<>();
+//          scores.stream().sorted(Comparator.comparingInt(GAScore::getScore)).
 
             // parents which go to next generation
             ArrayList<GAState> nextPopulation = new ArrayList<>(selectedPopulation);
 
             // select for crossover
             ArrayList<GAState> selectedForCrossover = new ArrayList<>();
-            for (int j = 0; j < population_size; j++) {
+            for (GAState gaState : selectedPopulation) {
                 if (rnd.nextDouble() < crossover_rate) {
-                    selectedForCrossover.add(selectedPopulation.get(j));
+                    selectedForCrossover.add(gaState);
                 }
             }
+            System.out.println("[GA] " + selectedForCrossover.size() + " individuals selected for crossover.");
 
             // crossover
             if (selectedForCrossover.size() >= 2) {
@@ -157,28 +168,36 @@ public class GeneticAlgorithm {
             // mutation
             int number_of_mutations = (int)Math.floor(mutation_rate * population_size);
             for (int j=0; j < number_of_mutations; j++) {
-                int mutIndex = rnd.nextInt(population_size);
+                int mutIndex = rnd.nextInt(selectedPopulation.size());
                 nextPopulation.add(mutate(selectedPopulation.get(mutIndex)));
             }
+            System.out.println("[GA] " + number_of_mutations + " individuals mutated.");
 
             population = nextPopulation;
             System.out.println("[GA] advancing generation with " + nextPopulation.size() + " members.");
         }
 
         // after generation iterations return answer
-        int bestFitness = 0;
+        double bestFitness = 0;
         GAState bestState = null;
 
         for(GAState s : population){
-            if(bestState == null || fitness(s) > bestFitness){
+            if(bestState == null || fitness(s) < bestFitness){
                 bestState = s;
                 bestFitness = fitness(s);
             }
         }
 
         System.out.println("[GA] completed!");
-        Graph gg = dnaToGraph(bestState.dna);
-        ShowGraph.showGraph("fitness: " + FitnessEvaluator.evaluate(gg,maxCost),gg);
+        long time = (System.currentTimeMillis() - startTime);
+        Graph gg = null;
+        double ff = 1.0;
+        if(bestState != null) {
+            gg = dnaToGraph(bestState.dna);
+            ff = Fitness.calc(gg,maxCost);
+        }
+        System.out.println("[GA] time: " + time + "ms");
+        return new Report(gg,ff,time);
     }
 
     private Graph dnaToGraph(int[] dna) {
@@ -213,9 +232,9 @@ public class GeneticAlgorithm {
         return result;
     }
 
-    private int fitness(GAState s) {
+    private double fitness(GAState s) {
         // evaluate the graph
-        return FitnessEvaluator.evaluate(dnaToGraph(s.dna),maxCost);
+        return Fitness.calc(dnaToGraph(s.dna),maxCost);
     }
 
     private GAState crossover(GAState a, GAState b) {

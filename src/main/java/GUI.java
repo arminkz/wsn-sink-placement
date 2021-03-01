@@ -1,43 +1,51 @@
 import algorithm.Fitness;
 import model.*;
+import optimization.BruteForce;
 import optimization.FastHillClimbing;
+import optimization.GeneticAlgorithm;
+import optimization.HillClimbing;
 import visual.GraphPanel;
 
 import javax.swing.*;
 import java.awt.*;
+import java.util.Comparator;
 
 public class GUI extends JPanel {
 
     private GUI(){
 
-        //RandomScenarioGenerator.generate("WSN3",40,20,150,150,29);
+//        RandomScenarioGenerator.generate("WSN_grid_2",
+//                5,2,500,500,250,4);
 
-        Scenario s = ScenarioLoader.loadFromFile("data/toy_example/");
+        Scenario s = ScenarioLoader.loadFromFile("data/wsn_100/");
 
-        int c = 1;
-        SinkConfiguration conf = s.getSinkTypes().get(0);
-        for (SinkCandidate sc : s.getSinkCandidates()) {
-            int pi = sc.getPlacmentVertexIndex();
-            s.getRootGraph().getVertices().get(pi).setNode(new SinkNode("S" + c, conf));
-            c++;
-        }
+//        int c = 1;
+//        SinkConfiguration conf = s.getSinkTypes().get(2);
+//        for (SinkCandidate sc : s.getSinkCandidates()) {
+//            int pi = sc.getPlacmentVertexIndex();
+//            s.getRootGraph().getVertices().get(pi).setNode(new SinkNode("S" + c, conf));
+//            c++;
+//        }
+
+//        int maxCost = s.getSinkCandidates().size() *
+//                s.getSinkTypes().stream().max(Comparator.comparingInt(SinkConfiguration::getCost)).get().getCost();
 
         this.setLayout(new BorderLayout());
         this.add(new GraphPanel(s.getRootGraph()));
 
-        System.out.println("Fitness: " + Fitness.calc(s.getRootGraph(),true));
+//        System.out.println("Fitness: " + Fitness.calc(s.getRootGraph(), maxCost, true));
 
-//      FastHillClimbing fhc = new FastHillClimbing(s,7);
-//      fhc.solve();
+//        FastHillClimbing fhc = new FastHillClimbing(s,7);
+//        fhc.solve();
 
-//      BruteForce bf = new BruteForce(s);
-//      bf.solve();
+//        BruteForce bf = new BruteForce(s);
+//        bf.solve();
 
-//      GeneticAlgorithm ga = new GeneticAlgorithm(s,500,0.05,0.1,20);
+//      GeneticAlgorithm ga = new GeneticAlgorithm(s,100,0.05,0.1,20);
 //      ga.solve();
 
-//      HillClimbing hc = new HillClimbing(s);
-//      hc.solve();
+//        HillClimbing hc = new HillClimbing(s);
+//        hc.solve();
     }
 
     public static void run() {

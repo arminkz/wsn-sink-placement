@@ -1,6 +1,6 @@
 package optimization;
 
-import algorithm.FitnessEvaluator;
+import algorithm.Fitness;
 import graph.Graph;
 import model.Scenario;
 import model.SinkCandidate;
@@ -52,27 +52,29 @@ public class HillClimbing {
     }
 
     public void solve() {
+        long startTime = System.currentTimeMillis();
 
         HCState currentState = initialState();
 
         while(true) {
             ArrayList<HCState> neighbours = getNeighbours(currentState);
 
-            int bestFitness = Integer.MIN_VALUE;
+            double bestFitness = Integer.MAX_VALUE;
             HCState nextState = null;
             for(HCState n : neighbours) {
-                int f = fitness(n);
-                if(f > bestFitness) {
+                double f = fitness(n);
+                if(f < bestFitness) {
                     nextState = n;
                     bestFitness = f;
                 }
             }
 
-            if(bestFitness <= fitness(currentState)) {
+            if(bestFitness >= fitness(currentState)) {
                 //Return current state since no better neighbors exist
                 System.out.println("[HC] completed !");
+                System.out.println("[HC] time: " + (System.currentTimeMillis() - startTime) + "ms");
                 Graph gg = dnaToGraph(currentState.dna);
-                ShowGraph.showGraph("fitness: " + FitnessEvaluator.evaluate(gg,maxCost),gg);
+                ShowGraph.showGraphWithCoverage("[HC] best answer (fitness: " + Fitness.calc(gg,maxCost) + ")",gg);
                 return;
             }
 
@@ -124,8 +126,8 @@ public class HillClimbing {
         return result;
     }
 
-    private int fitness(HCState s) {
+    private double fitness(HCState s) {
         // evaluate the graph
-        return FitnessEvaluator.evaluate(dnaToGraph(s.dna),maxCost);
+        return Fitness.calc(dnaToGraph(s.dna), maxCost);
     }
 }
