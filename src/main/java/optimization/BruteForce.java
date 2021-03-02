@@ -3,6 +3,7 @@ package optimization;
 import algorithm.Fitness;
 import graph.Graph;
 import model.*;
+import report.Report;
 import visual.ShowGraph;
 
 import java.util.Comparator;
@@ -35,15 +36,18 @@ public class BruteForce {
                 scenario.getSinkTypes().stream().max(Comparator.comparingInt(SinkConfiguration::getCost)).get().getCost();
     }
 
-    public void solve() {
-        long start = System.currentTimeMillis();
+    public Report solve() {
+        long startTime = System.currentTimeMillis();
         solveUtil(root,0);
         if(bestAnswer == null) {
             System.out.println("[BF] there is no feasible answer to this problem.");
+            return null;
         } else {
+            long time = (System.currentTimeMillis() - startTime);
             System.out.println("[BF] brute force explored " + leafCount + " states.");
-            System.out.println("[BF] execution time: " + (System.currentTimeMillis() - start) + "ms");
-            ShowGraph.showGraphWithCoverage("[BF] best answer (fitness=" + bestFitness + ")" ,bestAnswer);
+            System.out.println("[BF] execution time: " + time + "ms");
+            return new Report(bestAnswer, bestFitness, time);
+            //ShowGraph.showGraphWithCoverage("[BF] best answer (fitness=" + bestFitness + ")" ,bestAnswer);
         }
     }
 

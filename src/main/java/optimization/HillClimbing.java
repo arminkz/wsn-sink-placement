@@ -6,6 +6,7 @@ import model.Scenario;
 import model.SinkCandidate;
 import model.SinkConfiguration;
 import model.SinkNode;
+import report.Report;
 import visual.ShowGraph;
 
 import java.util.ArrayList;
@@ -51,7 +52,7 @@ public class HillClimbing {
                 scenario.getSinkTypes().stream().max(Comparator.comparingInt(SinkConfiguration::getCost)).get().getCost();
     }
 
-    public void solve() {
+    public Report solve() {
         long startTime = System.currentTimeMillis();
 
         HCState currentState = initialState();
@@ -72,10 +73,14 @@ public class HillClimbing {
             if(bestFitness >= fitness(currentState)) {
                 //Return current state since no better neighbors exist
                 System.out.println("[HC] completed !");
-                System.out.println("[HC] time: " + (System.currentTimeMillis() - startTime) + "ms");
                 Graph gg = dnaToGraph(currentState.dna);
-                ShowGraph.showGraphWithCoverage("[HC] best answer (fitness: " + Fitness.calc(gg,maxCost) + ")",gg);
-                return;
+                double ff = Fitness.calc(gg,maxCost);
+                long time = (System.currentTimeMillis() - startTime);
+
+                System.out.println("[HC] time: " + time + "ms");
+
+                //ShowGraph.showGraphWithCoverage("[HC] best answer (fitness: " + Fitness.calc(gg,maxCost) + ")",gg);
+                return new Report(gg,ff,time);
             }
 
             System.out.println("[HC] updating state (Fitness: " + bestFitness + ")");
