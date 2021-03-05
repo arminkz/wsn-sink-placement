@@ -23,6 +23,7 @@ to check if you have a graphviz installation use `dot` command.
 
 Baseline algorithms : 
 * Brute Force `bf`
+* Genetic Algorithm `ga`
 * Hill Climbing `hc`
 * Hill Climbing (Stochastic) `hcs`
 
