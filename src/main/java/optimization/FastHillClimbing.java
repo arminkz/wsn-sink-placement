@@ -28,6 +28,8 @@ public class FastHillClimbing {
 
     private final int maxCost;
 
+    HillClimbingStrategy strategy;
+
     String[] colors = {
             "blue",
             "red",
@@ -39,8 +41,9 @@ public class FastHillClimbing {
             "pink"
     };
 
-    public FastHillClimbing(Scenario scenario, int Q) {
+    public FastHillClimbing(Scenario scenario, int Q, HillClimbingStrategy strategy) {
         this.scenario = scenario;
+        this.strategy = strategy;
         root = scenario.getRootGraph();
 
         dij = new Dijkstra(root);
@@ -162,33 +165,63 @@ public class FastHillClimbing {
         }
         HillClimbing.HCState currentState = start;
 
+        Random rnd = new Random();
+
         while(true) {
             ArrayList<HillClimbing.HCState> neighbours = getNeighbours(currentState);
 
-            double bestFitness = Integer.MAX_VALUE;
-            HillClimbing.HCState nextState = null;
-            for(HillClimbing.HCState n : neighbours) {
-                double f = fitness(n);
-                if(f < bestFitness) {
-                    nextState = n;
-                    bestFitness = f;
+            if (strategy == HillClimbingStrategy.BASIC) {
+
+                double bestFitness = Integer.MAX_VALUE;
+                HillClimbing.HCState nextState = null;
+                for (HillClimbing.HCState n : neighbours) {
+                    double f = fitness(n);
+                    if (f < bestFitness) {
+                        nextState = n;
+                        bestFitness = f;
+                    }
                 }
+
+                if (bestFitness >= fitness(currentState)) {
+                    break;
+                }
+
+                System.out.println("[HC] updating state (Fitness: " + bestFitness + ")");
+                currentState = nextState;
+
+            }
+            else if(strategy == HillClimbingStrategy.STOCHASTIC) {
+
+                ArrayList<HillClimbing.HCState> betterStates = new ArrayList<>();
+                for(HillClimbing.HCState n : neighbours) {
+                    double f = fitness(n);
+                    if (f < fitness(currentState)) {
+                        betterStates.add(n);
+                    }
+                }
+
+                if(betterStates.size() == 0) {
+                    break;
+                }
+
+                HillClimbing.HCState nextState = betterStates.get(rnd.nextInt(betterStates.size()));
+                System.out.println("[HC] updating state (Fitness: " + fitness(nextState) + ")");
+                currentState = nextState;
+            }
+            else {
+                System.err.println("[HC] undefined strategy !");
             }
 
-            if(bestFitness >= fitness(currentState)) {
-                //Return current state since no better neighbors exist
-                System.out.println("[FHC] completed !");
-                Graph gg = dnaToGraph(currentState.dna);
-                double ff = Fitness.calc(gg,maxCost);
-                long time = (System.currentTimeMillis() - startTime);
-
-                System.out.println("[FHC] time: " + time + "ms");
-                return new Report(gg,ff,time);
-            }
-
-            System.out.println("[FHC] updating state (Fitness: " + bestFitness + ")");
-            currentState = nextState;
         }
+
+        //Return current state since no better neighbors exist
+        System.out.println("[FHC] completed !");
+        Graph gg = dnaToGraph(currentState.dna);
+        double ff = Fitness.calc(gg,maxCost);
+        long time = (System.currentTimeMillis() - startTime);
+
+        System.out.println("[FHC] time: " + time + "ms");
+        return new Report(gg,ff,time);
 
     }
 

@@ -36,14 +36,16 @@ public class HillClimbing {
     }
 
     Scenario scenario;
+    HillClimbingStrategy strategy;
     Graph root;
     int nSink;
     int nOption;
 
     private final int maxCost;
 
-    public HillClimbing(Scenario scenario) {
+    public HillClimbing(Scenario scenario, HillClimbingStrategy strategy) {
         this.scenario = scenario;
+        this.strategy = strategy;
         root = scenario.getRootGraph();
         nSink = scenario.getSinkCandidates().size();
         nOption = scenario.getSinkTypes().size();
@@ -54,38 +56,67 @@ public class HillClimbing {
 
     public Report solve() {
         long startTime = System.currentTimeMillis();
+        Random rnd = new Random();
 
         HCState currentState = initialState();
 
         while(true) {
             ArrayList<HCState> neighbours = getNeighbours(currentState);
 
-            double bestFitness = Integer.MAX_VALUE;
-            HCState nextState = null;
-            for(HCState n : neighbours) {
-                double f = fitness(n);
-                if(f < bestFitness) {
-                    nextState = n;
-                    bestFitness = f;
+            if (strategy == HillClimbingStrategy.BASIC) {
+
+                double bestFitness = Integer.MAX_VALUE;
+                HCState nextState = null;
+                for (HCState n : neighbours) {
+                    double f = fitness(n);
+                    if (f < bestFitness) {
+                        nextState = n;
+                        bestFitness = f;
+                    }
                 }
+
+                if (bestFitness >= fitness(currentState)) {
+                    break;
+                }
+
+                System.out.println("[HC] updating state (Fitness: " + bestFitness + ")");
+                currentState = nextState;
+
+            }
+            else if(strategy == HillClimbingStrategy.STOCHASTIC) {
+
+                ArrayList<HCState> betterStates = new ArrayList<>();
+                for(HCState n : neighbours) {
+                    double f = fitness(n);
+                    if (f < fitness(currentState)) {
+                        betterStates.add(n);
+                    }
+                }
+
+                if(betterStates.size() == 0) {
+                    break;
+                }
+
+                HCState nextState = betterStates.get(rnd.nextInt(betterStates.size()));
+                System.out.println("[HC] updating state (Fitness: " + fitness(nextState) + ")");
+                currentState = nextState;
+            }
+            else {
+                System.err.println("[HC] undefined strategy !");
             }
 
-            if(bestFitness >= fitness(currentState)) {
-                //Return current state since no better neighbors exist
-                System.out.println("[HC] completed !");
-                Graph gg = dnaToGraph(currentState.dna);
-                double ff = Fitness.calc(gg,maxCost);
-                long time = (System.currentTimeMillis() - startTime);
-
-                System.out.println("[HC] time: " + time + "ms");
-
-                //ShowGraph.showGraphWithCoverage("[HC] best answer (fitness: " + Fitness.calc(gg,maxCost) + ")",gg);
-                return new Report(gg,ff,time);
-            }
-
-            System.out.println("[HC] updating state (Fitness: " + bestFitness + ")");
-            currentState = nextState;
         }
+
+        //Return current state since no better neighbors exist
+        System.out.println("[HC] completed !");
+        Graph gg = dnaToGraph(currentState.dna);
+        double ff = Fitness.calc(gg,maxCost);
+        long time = (System.currentTimeMillis() - startTime);
+
+        System.out.println("[HC] time: " + time + "ms");
+
+        //ShowGraph.showGraphWithCoverage("[HC] best answer (fitness: " + Fitness.calc(gg,maxCost) + ")",gg);
+        return new Report(gg,ff,time);
 
     }
 
