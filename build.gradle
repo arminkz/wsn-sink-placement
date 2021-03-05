@@ -20,3 +20,14 @@ dependencies {
 application {
     mainClass = 'Main'
 }
+
+task run_algs(type: JavaExec) {
+    main = "report.FitnessAnalysis"
+    classpath = sourceSets.main.runtimeClasspath
+    if (project.hasProperty('runArgs')) { args findProperty('runArgs') }
+}
+
+task run_gui(type: JavaExec) {
+    main = "Main"
+    classpath = sourceSets.main.runtimeClasspath
+}

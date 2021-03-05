@@ -10,6 +10,9 @@ import javax.swing.*;
 import java.awt.*;
 import java.util.Comparator;
 
+import static optimization.HillClimbingStrategy.BASIC;
+import static optimization.HillClimbingStrategy.STOCHASTIC;
+
 public class GUI extends JPanel {
 
     private GUI(){
@@ -17,7 +20,7 @@ public class GUI extends JPanel {
 //        RandomScenarioGenerator.generate("WSN_grid_2",
 //                5,2,500,500,250,4);
 
-        Scenario s = ScenarioLoader.loadFromFile("data/wsn_100/");
+        Scenario s = ScenarioLoader.loadFromFile("data/toy_example/");
 
 //        int c = 1;
 //        SinkConfiguration conf = s.getSinkTypes().get(2);
@@ -44,8 +47,8 @@ public class GUI extends JPanel {
 //      GeneticAlgorithm ga = new GeneticAlgorithm(s,100,0.05,0.1,20);
 //      ga.solve();
 
-//        HillClimbing hc = new HillClimbing(s);
-//        hc.solve();
+        HillClimbing hc = new HillClimbing(s,STOCHASTIC);
+        hc.solve();
     }
 
     public static void run() {

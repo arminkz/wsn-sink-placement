@@ -4,6 +4,7 @@ import model.Scenario;
 import model.ScenarioLoader;
 import optimization.FastHillClimbing;
 import optimization.GeneticAlgorithm;
+import optimization.HillClimbingStrategy;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -40,7 +41,7 @@ public class SensitivityAnalysis {
 
             for (int q = 4; q < 8; q++) {
                 System.out.println("Running with Q="+q);
-                FastHillClimbing fhc = new FastHillClimbing(s,q);
+                FastHillClimbing fhc = new FastHillClimbing(s,q, HillClimbingStrategy.BASIC);
                 Report r = fhc.solve();
                 wrt.write(q+","+r.getFitness()+","+r.getTime());
                 wrt.newLine();
