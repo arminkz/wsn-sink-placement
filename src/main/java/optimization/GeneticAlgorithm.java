@@ -59,6 +59,8 @@ public class GeneticAlgorithm {
 
     private final int maxCost;
 
+    private Fitness fitnessUtil;
+
     public GeneticAlgorithm(Scenario scenario,int population_size,double mutation_rate,double crossover_rate,int generations) {
         this.scenario = scenario;
         root = scenario.getRootGraph();
@@ -73,6 +75,8 @@ public class GeneticAlgorithm {
 
         maxCost = scenario.getSinkCandidates().size() *
                   scenario.getSinkTypes().stream().max(Comparator.comparingInt(SinkConfiguration::getCost)).get().getCost();
+
+        fitnessUtil = new Fitness(root, maxCost);
     }
 
     public Report solve() {
@@ -194,7 +198,7 @@ public class GeneticAlgorithm {
         double ff = 1.0;
         if(bestState != null) {
             gg = dnaToGraph(bestState.dna);
-            ff = Fitness.calc(gg,maxCost);
+            ff = fitnessUtil.calc(gg);
         }
         System.out.println("[GA] time: " + time + "ms");
         return new Report(gg,ff,time);
@@ -234,7 +238,7 @@ public class GeneticAlgorithm {
 
     private double fitness(GAState s) {
         // evaluate the graph
-        return Fitness.calc(dnaToGraph(s.dna),maxCost);
+        return fitnessUtil.calc(dnaToGraph(s.dna));
     }
 
     private GAState crossover(GAState a, GAState b) {

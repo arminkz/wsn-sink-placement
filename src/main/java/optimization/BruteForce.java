@@ -23,6 +23,7 @@ public class BruteForce {
     private Graph bestAnswer = null;
     private double bestFitness = Double.MAX_VALUE;
 
+    private Fitness fitnessUtil;
     private final int maxCost;
 
     public BruteForce(Scenario scenario) {
@@ -34,6 +35,8 @@ public class BruteForce {
 
         maxCost = scenario.getSinkCandidates().size() *
                 scenario.getSinkTypes().stream().max(Comparator.comparingInt(SinkConfiguration::getCost)).get().getCost();
+
+        fitnessUtil = new Fitness(root, maxCost);
     }
 
     public Report solve() {
@@ -60,17 +63,17 @@ public class BruteForce {
             double p = (leafCount / answerSpace) * 100;
             if((int)p != progress) {
                 progress = (int)p;
-                System.out.print("\r[BF] progress " + progress + "%");
+                System.out.println("[BF] progress " + progress + "%");
                 if(progress == 100) System.out.print("\n");
             }
 
-            double fitness = Fitness.calc(graph, maxCost);
+            double fitness = fitnessUtil.calc(graph);
             if (Double.isNaN(fitness)) return;
 
             if(bestAnswer == null || fitness < bestFitness) {
                 bestFitness = fitness;
                 bestAnswer = graph;
-                System.out.print("\rBest Fitness Updated : " + bestFitness);
+                System.out.println("[BF] Best Fitness Updated : " + bestFitness);
             }
             return;
         }

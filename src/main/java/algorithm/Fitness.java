@@ -7,6 +7,7 @@ import model.SinkNode;
 import visual.ShowGraph;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashMap;
 
@@ -60,12 +61,30 @@ public class Fitness {
 
         ShowGraph.showGraph("Y",g);
     }
+    /////////////////////// Actual Class ///////////////////////
+    private final int maxCost;
+    //store AllPairDijkstra so that it wouldn't be essential to calculate distance each round
+    private final int[][] dist;
 
-    public static double calc(Graph g, int maxCost) {
-        return calc(g, maxCost, false);
+    //coefficients
+    private final int[] coeff ={1,10,1,1,1};
+
+    public Fitness(Graph g, int maxCost) {
+        this.maxCost = maxCost;
+        dist = AllPairDijkstra.getAllPairDist(g);
     }
 
-    public static double calc(Graph g, int maxCost, boolean verbose) {
+    // Verbose
+    // 0: not verbose
+    // 1: print Penalty values
+    // 2: print full log
+
+    public double calc(Graph g) {
+        return calc(g, 0);
+    }
+
+    public double calc(Graph g, int verbose) {
+        long startTime = System.currentTimeMillis();
         // Hash to get Index in vertices list
         HashMap<Integer,Integer> sinksVI = new HashMap<>();
         HashMap<Integer,Integer> sensorsVI = new HashMap<>();
@@ -74,8 +93,6 @@ public class Fitness {
         HashMap<SensorNode,Integer> sensorsI = new HashMap<>();
         int sinkCount = 0;
         int sensorCount = 0;
-
-        Dijkstra dij = new Dijkstra(g);
 
         for (int i = 0; i < g.getVertices().size(); i++) {
             Vertex v = g.getVertices().get(i);
@@ -90,6 +107,12 @@ public class Fitness {
                 sensorCount++;
             }
         }
+        if(verbose >= 2) {
+            long time = (System.currentTimeMillis() - startTime)/1000;
+            System.out.println("[Fitness] Sink and Sensor hashes initiated. (" + time + "s)");
+            System.out.println("[Fitness] Graph has " + sensorCount + " sensors and " + sinkCount + " sinks.");
+            startTime = System.currentTimeMillis();
+        }
 
         // Z describes order of visiting sensors in order to initialize Y
         int[] Z = new int[sensorCount];
@@ -98,8 +121,8 @@ public class Fitness {
             Z[i] = i;
         }
 
-        if(verbose) {
-            System.out.println("Z:");
+        if(verbose >= 2) {
+            System.out.println("Z initiated: ");
             for (int i = 0; i < sensorCount; i++) {
                 System.out.print(Z[i] + " ");
             }
@@ -126,23 +149,38 @@ public class Fitness {
         }
 
         // build Y
+        long roundStartTime = System.currentTimeMillis();
         for (int i = 0; i < sensorCount; i++) {
             int sensorIndex = Z[i];
             Vertex v = g.getVertices().get(sensorsVI.get(sensorIndex));
             SensorNode sn = (SensorNode)v.getAssignedNode();
 
-            dij.calc(v);
+            if (verbose >= 2){
+                if (i>0) {
+                    long roundTime = (System.currentTimeMillis() - roundStartTime)/1000;
+                    System.out.println("[Fitness] round took " + roundTime + "ms");
+                    roundStartTime = System.currentTimeMillis();
+                }
+                System.out.println("[Fitness] calculating covering set for sensor " + v.getAssignedNode().getName());
+            }
 
             ArrayList<Vertex> fetchedSinks = new ArrayList<>();
             for (int j = 0; j < sinkCount; j++) {
                 Vertex v2 = g.getVertices().get(sinksVI.get(j));
-                if (dij.getDistance(v2) <= sn.getMaxL()) {
+                int distance = dist[sensorsVI.get(sensorIndex)][sinksVI.get(j)];
+                if (distance <= sn.getMaxL()) {
                     fetchedSinks.add(v2);
                 }
             }
+
             // sort by distance
-            fetchedSinks.sort(Comparator.comparingInt(dij::getDistance));
+            fetchedSinks.sort(Comparator.comparingInt((o) ->
+                dist[sensorsVI.get(sensorIndex)][g.getVertices().indexOf(o)]
+            ));
             // 1st element is the closest sink
+            if (verbose >= 2) {
+                System.out.println("[Fitness] " + fetchedSinks.size() + " sinks are in range for covering." );
+            }
 
             ArrayList<Vertex> rejectedBecauseOfLoad = new ArrayList<>();
 
@@ -167,6 +205,9 @@ public class Fitness {
             }
             // after the loop we have elected at most k sinks considering load
             // if we are still short on sinks ignore load and just add them
+            if (verbose >= 2) {
+                System.out.println("[Fitness] " + rejectedBecauseOfLoad.size() + " sinks were rejected because of load constraints." );
+            }
             while(elected < sn.getKC() && !rejectedBecauseOfLoad.isEmpty()) {
                 Vertex v2 = rejectedBecauseOfLoad.remove(0);
                 SinkNode sk = (SinkNode)v2.getAssignedNode();
@@ -179,17 +220,31 @@ public class Fitness {
                 // Mark As Covering in Y
                 Y[sensorsI.get(sn)][sinksI.get(sk)] = 1;
             }
+            if (verbose >= 2) {
+                System.out.println("[Fitness] eventually " + elected + " sinks got selected for covering.");
+            }
         }
 
-        if(verbose) {
-            System.out.println("Y: ");
-            for (int i = 0; i < sensorCount; i++) {
-                for (int j = 0; j < sinkCount; j++) {
-                    System.out.print(Y[i][j] + " ");
+        if(verbose >= 2) {
+            if (Y[0].length == 0) {
+                System.out.println("Y is empty because there isn't any sinks on the graph!");
+            }
+            else {
+                System.out.println("Y: ");
+                for (int i = 0; i < sensorCount; i++) {
+                    for (int j = 0; j < sinkCount; j++) {
+                        System.out.print(Y[i][j] + " ");
+                    }
+                    System.out.print("\n");
                 }
-                System.out.print("\n");
             }
             visualizeY(g, Y);
+        }
+
+        if(verbose >= 2) {
+            long time = (System.currentTimeMillis() - startTime)/1000;
+            System.out.println("[Fitness] Y matrix initiated. (" + time + "s)");
+            startTime = System.currentTimeMillis();
         }
 
         //Now we have Y ready we can calculate fitness
@@ -225,22 +280,30 @@ public class Fitness {
             P4_max += loadBW.get(sk);
         }
 
-        //TODO: coeff for each nominal
         double cost_normal = (double)cost / maxCost;
-        double P1_normal = (double)P1 / P1_max;
-        double P2_normal = (double)P2 / P2_max;
-        double P3_normal = (double)P3 / P3_max;
-        double P4_normal = (double)P4 / P4_max;
+        double P1_normal = (P1 != 0) ? (double)P1 / P1_max : 0;
+        double P2_normal = (P2 != 0) ? (double)P2 / P2_max : 0;
+        double P3_normal = (P3 != 0) ? (double)P3 / P3_max : 0;
+        double P4_normal = (P4 != 0) ? (double)P4 / P4_max : 0;
+
+        if(verbose >= 2) {
+            long time = (System.currentTimeMillis() - startTime)/1000;
+            System.out.println("[Fitness] Penalties calculated. (" + time + "s)");
+            startTime = System.currentTimeMillis();
+        }
 
         //print normalized sub-scores
-        if(verbose) {
+        if(verbose >= 1) {
             System.out.println("[Fitness] Cost Score: " + cost_normal);
             System.out.println("[Fitness] P1 Score: " + P1_normal);
             System.out.println("[Fitness] P2 Score: " + P2_normal);
             System.out.println("[Fitness] P3 Score: " + P3_normal);
             System.out.println("[Fitness] P4 Score: " + P4_normal);
         }
-        return (cost_normal + P1_normal + P2_normal + P3_normal + P4_normal) / 5;
+
+        return (coeff[0] * cost_normal + coeff[1] * P1_normal +
+                coeff[2] * P2_normal + coeff[3] * P3_normal +
+                coeff[4] * P4_normal) / Arrays.stream(coeff).sum();
     }
 
 }

@@ -1,5 +1,6 @@
 package visual;
 
+import algorithm.AllPairDijkstra;
 import algorithm.Dijkstra;
 import graph.Graph;
 import graph.Vertex;
@@ -46,7 +47,7 @@ public class ShowGraph extends JPanel {
         int sinkCount = 0;
         int sensorCount = 0;
 
-        Dijkstra dij = new Dijkstra(g);
+        int[][] dist = AllPairDijkstra.getAllPairDist(g);
 
         for (int i = 0; i < g.getVertices().size(); i++) {
             Vertex v = g.getVertices().get(i);
@@ -89,22 +90,25 @@ public class ShowGraph extends JPanel {
         }
 
         // build Y
+        long roundStartTime = System.currentTimeMillis();
         for (int i = 0; i < sensorCount; i++) {
             int sensorIndex = Z[i];
             Vertex v = g.getVertices().get(sensorsVI.get(sensorIndex));
             SensorNode sn = (SensorNode)v.getAssignedNode();
 
-            dij.calc(v);
-
             ArrayList<Vertex> fetchedSinks = new ArrayList<>();
             for (int j = 0; j < sinkCount; j++) {
                 Vertex v2 = g.getVertices().get(sinksVI.get(j));
-                if (dij.getDistance(v2) <= sn.getMaxL()) {
+                int distance = dist[sensorsVI.get(sensorIndex)][sinksVI.get(j)];
+                if (distance <= sn.getMaxL()) {
                     fetchedSinks.add(v2);
                 }
             }
+
             // sort by distance
-            fetchedSinks.sort(Comparator.comparingInt(dij::getDistance));
+            fetchedSinks.sort(Comparator.comparingInt((o) ->
+                    dist[sensorsVI.get(sensorIndex)][g.getVertices().indexOf(o)]
+            ));
             // 1st element is the closest sink
 
             ArrayList<Vertex> rejectedBecauseOfLoad = new ArrayList<>();

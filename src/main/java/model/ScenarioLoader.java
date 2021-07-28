@@ -22,8 +22,10 @@ public class ScenarioLoader {
             // load WSN graph
             // this file stores graph sparsely
             File graphFile = new File(path + "graph.csv");
+            String scnName = path.substring(path.substring(0,path.length()-1).lastIndexOf('/')+1,path.length()-1);
+            System.out.println("[ScenarioLoader] Loading " + scnName);
 
-            Graph g = new Graph();
+            Graph g = new Graph(scnName);
             //HashMap<Integer, Vertex> vertexMap = new HashMap<>();
             int maxSeenIndex=-1;
 

@@ -5,15 +5,18 @@ import java.util.ArrayList;
 
 public class Graph {
 
+    private final String name;
     private final ArrayList<Vertex> vertices;
     private final ArrayList<Edge> edges;
 
-    public Graph() {
+    public Graph(String name) {
+        this.name = name;
         this.vertices = new ArrayList<>();
         this.edges = new ArrayList<>();
     }
 
-    public Graph(int[][] adj) {
+    public Graph(String name, int[][] adj) {
+        this.name = name;
         int N = adj.length;
         // add vertices
         this.vertices = new ArrayList<>();
@@ -32,6 +35,10 @@ public class Graph {
                 }
             }
         }
+    }
+
+    public String getName() {
+        return name;
     }
 
     public int[][] getAdjacencyMatrix() {
@@ -66,7 +73,7 @@ public class Graph {
 
     @Override
     public Graph clone() {
-        Graph g = new Graph(this.getAdjacencyMatrix());
+        Graph g = new Graph(this.name,this.getAdjacencyMatrix());
         // fix node assignments
         for (int i = 0; i < vertices.size(); i++) {
             g.vertices.get(i).setNode(this.vertices.get(i).getAssignedNode());

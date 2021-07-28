@@ -1,17 +1,10 @@
+import algorithm.AllPairDijkstra;
 import algorithm.Fitness;
 import model.*;
-import optimization.BruteForce;
-import optimization.FastHillClimbing;
-import optimization.GeneticAlgorithm;
-import optimization.HillClimbing;
-import visual.GraphPanel;
+import visual.ShowGraph;
 
 import javax.swing.*;
-import java.awt.*;
 import java.util.Comparator;
-
-import static optimization.HillClimbingStrategy.BASIC;
-import static optimization.HillClimbingStrategy.STOCHASTIC;
 
 public class GUI extends JPanel {
 
@@ -30,25 +23,48 @@ public class GUI extends JPanel {
 //            c++;
 //        }
 
-//        int maxCost = s.getSinkCandidates().size() *
-//                s.getSinkTypes().stream().max(Comparator.comparingInt(SinkConfiguration::getCost)).get().getCost();
+//        Dijkstra dij = new Dijkstra(s.getRootGraph());
+//        for (int i = 0; i < s.getRootGraph().getVertices().size(); i++) {
+//            dij.calc(i);
+//            for (int j = 0; j < s.getRootGraph().getVertices().size(); j++) {
+//                String src = "null (" + String.valueOf(i) + ")";
+//                if(s.getRootGraph().getVertices().get(i).getAssignedNode() != null) {
+//                    src = s.getRootGraph().getVertices().get(i).getAssignedNode().getName();
+//                }
+//                String dest = "null (" + String.valueOf(j) + ")";
+//                if(s.getRootGraph().getVertices().get(j).getAssignedNode() != null) {
+//                    dest = s.getRootGraph().getVertices().get(j).getAssignedNode().getName();
+//                }
+//                int dist = dij.getDistance(j);
+//                System.out.println(src + "->" + dest + ": " + dist);
+//            }
+//        }
 
-        this.setLayout(new BorderLayout());
-        this.add(new GraphPanel(s.getRootGraph()));
+        int maxCost = s.getSinkCandidates().size() *
+                s.getSinkTypes().stream().max(Comparator.comparingInt(SinkConfiguration::getCost)).get().getCost();
 
-//        System.out.println("Fitness: " + Fitness.calc(s.getRootGraph(), maxCost, true));
+        Fitness fitnessUtil = new Fitness(s.getRootGraph(), maxCost);
+        System.out.println("fitness value: " + fitnessUtil.calc(s.getRootGraph(), 1));
+
+        ShowGraph.showGraph("WSN300", s.getRootGraph());
+
+
+
+//        this.setLayout(new BorderLayout());
+//        this.add(new GraphPanel(s.getRootGraph()));
+
+        //System.out.println("Fitness: " + Fitness.calc(s.getRootGraph(), maxCost, true));
 
 //        FastHillClimbing fhc = new FastHillClimbing(s,7);
 //        fhc.solve();
 
-//        BruteForce bf = new BruteForce(s);
-//        bf.solve();
 
-//      GeneticAlgorithm ga = new GeneticAlgorithm(s,100,0.05,0.1,20);
-//      ga.solve();
 
-        HillClimbing hc = new HillClimbing(s,STOCHASTIC);
-        hc.solve();
+//          GeneticAlgorithm ga = new GeneticAlgorithm(s,10,0.05,0.1,20);
+//          ga.solve();
+
+//        HillClimbing hc = new HillClimbing(s,STOCHASTIC);
+//        hc.solve();
     }
 
     public static void run() {

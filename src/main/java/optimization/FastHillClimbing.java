@@ -28,6 +28,8 @@ public class FastHillClimbing {
 
     private final int maxCost;
 
+    private Fitness fitnessUtil;
+
     HillClimbingStrategy strategy;
 
     String[] colors = {
@@ -57,6 +59,8 @@ public class FastHillClimbing {
 
         maxCost = scenario.getSinkCandidates().size() *
                 scenario.getSinkTypes().stream().max(Comparator.comparingInt(SinkConfiguration::getCost)).get().getCost();
+
+        fitnessUtil = new Fitness(root, maxCost);
     }
 
     public Report solve() {
@@ -147,7 +151,7 @@ public class FastHillClimbing {
         //show graph after heuristic method
         //ShowGraph.showGraph("Local search start point", root);
 
-        //if there is uncovered sensor your are messed up
+        //if there are uncovered sensors. you have messed up
         if (open.entrySet().stream()
                 .filter(e -> e.getValue() > 0)
                 .map(Map.Entry::getKey).count() > 0) {
@@ -217,7 +221,7 @@ public class FastHillClimbing {
         //Return current state since no better neighbors exist
         System.out.println("[FHC] completed !");
         Graph gg = dnaToGraph(currentState.dna);
-        double ff = Fitness.calc(gg,maxCost);
+        double ff = fitnessUtil.calc(gg);
         long time = (System.currentTimeMillis() - startTime);
 
         System.out.println("[FHC] time: " + time + "ms");
@@ -260,7 +264,7 @@ public class FastHillClimbing {
 
     private double fitness(HillClimbing.HCState s) {
         // evaluate the graph
-        return Fitness.calc(dnaToGraph(s.dna), maxCost);
+        return fitnessUtil.calc(dnaToGraph(s.dna));
     }
 
 }

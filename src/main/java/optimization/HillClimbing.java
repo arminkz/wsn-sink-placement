@@ -43,6 +43,8 @@ public class HillClimbing {
 
     private final int maxCost;
 
+    private Fitness fitnessUtil;
+
     public HillClimbing(Scenario scenario, HillClimbingStrategy strategy) {
         this.scenario = scenario;
         this.strategy = strategy;
@@ -52,6 +54,8 @@ public class HillClimbing {
 
         maxCost = scenario.getSinkCandidates().size() *
                 scenario.getSinkTypes().stream().max(Comparator.comparingInt(SinkConfiguration::getCost)).get().getCost();
+
+        fitnessUtil = new Fitness(root, maxCost);
     }
 
     public Report solve() {
@@ -110,7 +114,7 @@ public class HillClimbing {
         //Return current state since no better neighbors exist
         System.out.println("[HC] completed !");
         Graph gg = dnaToGraph(currentState.dna);
-        double ff = Fitness.calc(gg,maxCost);
+        double ff = fitnessUtil.calc(gg);
         long time = (System.currentTimeMillis() - startTime);
 
         System.out.println("[HC] time: " + time + "ms");
@@ -164,6 +168,6 @@ public class HillClimbing {
 
     private double fitness(HCState s) {
         // evaluate the graph
-        return Fitness.calc(dnaToGraph(s.dna), maxCost);
+        return fitnessUtil.calc(dnaToGraph(s.dna));
     }
 }

@@ -11,7 +11,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
 
-// this class is obsolete and Fitness should be used instead
+// this class is obsolete and class Fitness should be used instead
 @Deprecated
 public class FitnessLegacy {
 

@@ -167,7 +167,7 @@ public class RandomScenarioGenerator {
 
     //Generate Example Scenario Using Erdős–Rényi model
     public static Graph erdos(int sensor_count, int sc_count, double p) {
-        Graph g = new Graph();
+        Graph g = new Graph("erdos");
         int n = sensor_count + sc_count;
         ArrayList<Vertex> vertices = new ArrayList<>();
         Random rnd = new Random();

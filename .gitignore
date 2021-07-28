@@ -2,4 +2,6 @@
 .gradle
 .idea
 /report/
+/results_*/
+/src/main/java/test/
 

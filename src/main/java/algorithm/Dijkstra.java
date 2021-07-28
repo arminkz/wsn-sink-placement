@@ -3,6 +3,7 @@ package algorithm;
 import graph.Edge;
 import graph.Graph;
 import graph.Vertex;
+import model.SinkNode;
 
 import java.util.*;
 
@@ -79,7 +80,9 @@ public class Dijkstra {
                     Vertex neighbour = graph.getVertices().get(i);
                     int w = adj[vIndex][i];
 
-                    if(!visited.contains(neighbour) && neighbour.getAssignedNode() != null) {
+                    if(!visited.contains(neighbour)
+                            && neighbour.getAssignedNode() != null
+                            && !(neighbour.getAssignedNode() instanceof SinkNode)) { // Sinks cannot route through the graph
                         int newDist = dist.get(v) + w;
                         if(newDist < dist.get(neighbour)){
                             // update neighbour distance
@@ -97,6 +100,7 @@ public class Dijkstra {
         return getDistance(graph.getVertices().get(target));
     }
     public int getDistance(Vertex target) {
+        if (!dist.containsKey(target)) return -1;
         return dist.get(target);
     }
 
